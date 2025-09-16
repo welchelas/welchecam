@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cámara Móvil con Cambio</title>
+    <title>Cámara Funcional</title>
     <style>
         * {
             margin: 0;
@@ -58,7 +58,7 @@
         .camera-container {
             position: relative;
             width: 100%;
-            padding-top: 75%; /* Relación 4:3 para móviles */
+            padding-top: 75%;
             overflow: hidden;
             background: #000;
         }
@@ -71,7 +71,6 @@
             height: 100%;
             object-fit: cover;
             background: #000;
-            transform: scaleX(-1); /* Espejo para selfie */
         }
         
         .controls {
@@ -100,10 +99,10 @@
             width: 100%;
         }
         
-        .btn:hover, .btn:active {
+        .btn:active {
             background: linear-gradient(to bottom, #ffbb33, #ff7733);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+            transform: translateY(2px);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
         }
         
         .btn:disabled {
@@ -148,26 +147,11 @@
             width: 90%;
             max-width: 350px;
             z-index: 100;
-            display: none;
         }
         
         .permission-prompt p {
             margin-bottom: 15px;
             line-height: 1.5;
-        }
-        
-        .loader {
-            width: 24px;
-            height: 24px;
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top-color: #ff9900;
-            animation: spin 1s ease-in-out infinite;
-            margin: 0 auto;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
         }
         
         .browser-support {
@@ -204,14 +188,7 @@
             }
             
             .camera-container {
-                padding-top: 100%; /* Relación 1:1 para móviles */
-            }
-        }
-        
-        /* Ajustes para Safari iOS */
-        @supports (-webkit-touch-callout: none) {
-            .btn {
-                padding: 17px 25px;
+                padding-top: 100%;
             }
         }
     </style>
@@ -225,6 +202,9 @@
         
         <div class="camera-container">
             <video id="video" autoplay playsinline></video>
+            <div class="permission-prompt" id="permissionPrompt">
+                <p>Por favor, permite el acceso a la cámara para usar esta aplicación.</p>
+            </div>
         </div>
         
         <div class="error" id="errorMsg"></div>
@@ -249,11 +229,6 @@
         </div>
     </div>
     
-    <div class="permission-prompt" id="permissionPrompt">
-        <p>Por favor, permite el acceso a la cámara para usar esta aplicación.</p>
-        <div class="loader"></div>
-    </div>
-    
     <div class="browser-support">
         <p>Funciona en Chrome, Firefox, Safari y navegadores móviles modernos</p>
     </div>
@@ -267,7 +242,7 @@
         const permissionPrompt = document.getElementById('permissionPrompt');
         
         let stream = null;
-        let currentFacingMode = 'environment'; // Por defecto cámara trasera
+        let currentFacingMode = 'environment';
         let hasFrontCamera = false;
         let hasBackCamera = false;
         
@@ -289,62 +264,6 @@
             switchBtn.disabled = true;
         }
         
-        // Verificar si hay múltiples cámaras
-        async function checkCameras() {
-            try {
-                // Primero obtener acceso básico a la cámara
-                const tempStream = await navigator.mediaDevices.getUserMedia({ 
-                    video: true,
-                    audio: false 
-                });
-                
-                // Detener el stream temporal
-                tempStream.getTracks().forEach(track => track.stop());
-                
-                // Enumerar dispositivos
-                const devices = await navigator.mediaDevices.enumerateDevices();
-                const cameras = devices.filter(device => device.kind === 'videoinput');
-                
-                console.log('Cámaras encontradas:', cameras.length);
-                
-                // Para móviles, intentar detectar cámaras frontal y trasera
-                if (isMobile()) {
-                    try {
-                        // Probar cámara trasera
-                        const backStream = await navigator.mediaDevices.getUserMedia({
-                            video: { facingMode: 'environment' }
-                        });
-                        backStream.getTracks().forEach(track => track.stop());
-                        hasBackCamera = true;
-                    } catch (e) {
-                        console.log("Cámara trasera no disponible");
-                    }
-                    
-                    try {
-                        // Probar cámara frontal
-                        const frontStream = await navigator.mediaDevices.getUserMedia({
-                            video: { facingMode: 'user' }
-                        });
-                        frontStream.getTracks().forEach(track => track.stop());
-                        hasFrontCamera = true;
-                    } catch (e) {
-                        console.log("Cámara frontal no disponible");
-                    }
-                }
-                
-                // Si no se detectaron cámaras con facingMode, asumir que hay al menos una
-                if (!hasFrontCamera && !hasBackCamera && cameras.length > 0) {
-                    hasBackCamera = true;
-                    if (cameras.length > 1) hasFrontCamera = true;
-                }
-                
-                return true;
-            } catch (error) {
-                console.error("Error al verificar cámaras:", error);
-                return false;
-            }
-        }
-        
         // Iniciar la cámara
         async function startCamera(facingMode = 'environment') {
             showPermissionPrompt(true);
@@ -357,9 +276,7 @@
             try {
                 const constraints = {
                     video: { 
-                        facingMode: facingMode,
-                        width: { ideal: 1280 },
-                        height: { ideal: 720 }
+                        facingMode: { ideal: facingMode }
                     },
                     audio: false
                 };
@@ -377,7 +294,7 @@
                 }
                 
                 currentFacingMode = facingMode;
-                switchBtn.disabled = !(hasFrontCamera && hasBackCamera);
+                switchBtn.disabled = false;
                 showPermissionPrompt(false);
                 errorMsg.style.display = 'none';
                 
@@ -385,20 +302,26 @@
                 console.error("Error al iniciar cámara:", error);
                 showPermissionPrompt(false);
                 
+                // Intentar con el modo alternativo
+                const alternateMode = facingMode === 'user' ? 'environment' : 'user';
+                
                 if (error.name === 'NotAllowedError') {
                     showError('Permiso de cámara denegado. Por favor, permite el acceso a la cámara.');
                 } else if (error.name === 'NotFoundError' || error.name === 'OverconstrainedError') {
-                    showError('No se pudo acceder a la cámara. Es posible que no esté disponible.');
+                    // Intentar con la cámara alternativa
+                    try {
+                        await startCamera(alternateMode);
+                    } catch (secondError) {
+                        showError('No se pudo acceder a ninguna cámara.');
+                    }
                 } else {
-                    showError('Error desconocido al acceder a la cámara: ' + error.message);
+                    showError('Error al acceder a la cámara: ' + error.message);
                 }
             }
         }
         
         // Cambiar entre cámaras
         async function switchCamera() {
-            if (!hasFrontCamera || !hasBackCamera) return;
-            
             const newFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
             await startCamera(newFacingMode);
         }
@@ -444,35 +367,14 @@
         
         // Inicializar cámara cuando se carga la página
         window.addEventListener('load', async () => {
-            // Primero verificar si hay cámaras disponibles
-            const camerasAvailable = await checkCameras();
+            // Verificar si el navegador soporta la API de mediaDevices
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                showError('Tu navegador no soporta el acceso a la cámara.');
+                return;
+            }
             
-            if (camerasAvailable) {
-                // Iniciar con la cámara trasera por defecto
-                await startCamera('environment');
-                
-                // Habilitar el botón de cambio si hay ambas cámaras
-                if (hasFrontCamera && hasBackCamera) {
-                    switchBtn.disabled = false;
-                    statusDisplay.textContent = 'Cámara trasera activada - Cambio disponible';
-                } else if (hasBackCamera) {
-                    statusDisplay.textContent = 'Cámara trasera activada';
-                    switchBtn.disabled = true;
-                } else if (hasFrontCamera) {
-                    statusDisplay.textContent = 'Cámara frontal activada';
-                    switchBtn.disabled = true;
-                }
-            } else {
-                showError('No se detectaron cámaras disponibles.');
-            }
-        });
-        
-        // Manejar cambios en la orientación de la cámara
-        window.addEventListener('resize', () => {
-            // Reajustar el video si es necesario
-            if (stream) {
-                video.style.transform = currentFacingMode === 'user' ? 'scaleX(-1)' : 'scaleX(1)';
-            }
+            // Iniciar con la cámara trasera por defecto
+            await startCamera('environment');
         });
     </script>
 </body>
