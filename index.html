@@ -1,76 +1,77 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Cámara con swipe para cambiar cámara</title>
-<style>
-  html, body {
-    margin: 0; padding: 0; height: 100%; overflow: hidden; background: black;
-  }
-  video {
-    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-    object-fit: cover; z-index: 0;
-  }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cámara con Cambio</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background: black;
+      overflow: hidden;
+    }
+    video {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
+      z-index: 0;
+    }
+    #switchBtn {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      z-index: 10;
+      background: rgba(255, 255, 255, 0.9);
+      color: #000;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    }
+  </style>
 </head>
 <body>
 
-<video id="video" autoplay playsinline muted></video>
+  <video id="video" autoplay playsinline></video>
+  <button id="switchBtn">CAMBIAR CÁMARA</button>
 
-<script>
-  const video = document.getElementById('video');
-  let facingMode = 'environment';
-  let stream;
+  <script>
+    const video = document.getElementById('video');
+    const switchBtn = document.getElementById('switchBtn');
+    let stream = null;
+    let currentFacingMode = 'environment';
 
-  async function startStream() {
-    if (stream) {
-      stream.getTracks().forEach(track => track.stop());
+    async function startCamera() {
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
+
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { exact: currentFacingMode } },
+          audio: true
+        });
+        video.srcObject = stream;
+      } catch (err) {
+        console.error("Error al acceder a la cámara:", err);
+        alert("No se pudo acceder a la cámara. Revisa los permisos.");
+      }
     }
-    try {
-      stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { exact: facingMode } },
-        audio: true
-      });
-      video.srcObject = stream;
-    } catch (e) {
-      alert('Error al acceder a la cámara: ' + e.message);
-    }
-  }
 
-  startStream();
+    switchBtn.addEventListener('click', () => {
+      currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
+      startCamera();
+    });
 
-  // Detectar swipe a la derecha
-  let touchStartX = 0;
-  let touchStartY = 0;
-  let touchEndX = 0;
-  let touchEndY = 0;
-
-  function handleGesture() {
-    const deltaX = touchEndX - touchStartX;
-    const deltaY = touchEndY - touchStartY;
-
-    // Detectar swipe horizontal a la derecha con cierto umbral
-    if (Math.abs(deltaX) > 50 && Math.abs(deltaY) < 30 && deltaX > 0) {
-      // Cambiar cámara
-      facingMode = (facingMode === 'environment') ? 'user' : 'environment';
-      startStream();
-    }
-  }
-
-  document.addEventListener('touchstart', e => {
-    const touch = e.changedTouches[0];
-    touchStartX = touch.screenX;
-    touchStartY = touch.screenY;
-  }, false);
-
-  document.addEventListener('touchend', e => {
-    const touch = e.changedTouches[0];
-    touchEndX = touch.screenX;
-    touchEndY = touch.screenY;
-    handleGesture();
-  }, false);
-</script>
-
+    startCamera();
+  </script>
 </body>
 </html>
