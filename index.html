@@ -3,35 +3,13 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Cámara con cambio rápido sin pedir permiso</title>
+<title>Cámara con permiso para todas al inicio</title>
 <style>
-  body, html {
-    margin: 0; padding: 0; height: 100%; background: black;
-    display: flex; justify-content: center; align-items: center;
-    overflow: hidden;
-  }
-  video {
-    width: 100vw; height: 100vh; object-fit: cover;
-    transition: opacity 0.3s ease;
-  }
-  #controls {
-    position: fixed;
-    top: 10px; left: 10px;
-    display: flex; gap: 10px;
-    z-index: 1000;
-  }
-  button {
-    background: rgba(0,0,0,0.5);
-    color: white;
-    border: none;
-    padding: 10px 15px;
-    font-size: 16px;
-    border-radius: 5px;
-    cursor: pointer;
-  }
-  button:active {
-    background: rgba(255,255,255,0.3);
-  }
+  body, html { margin:0; padding:0; height:100%; background:black; display:flex; justify-content:center; align-items:center; overflow:hidden; }
+  video { width: 100vw; height: 100vh; object-fit: cover; transition: opacity 0.3s ease; }
+  #controls { position: fixed; top: 10px; left: 10px; display: flex; gap: 10px; z-index: 1000; }
+  button { background: rgba(0,0,0,0.5); color: white; border: none; padding: 10px 15px; font-size: 16px; border-radius: 5px; cursor: pointer; }
+  button:active { background: rgba(255,255,255,0.3); }
 </style>
 </head>
 <body>
@@ -48,82 +26,79 @@
   const switchCameraBtn = document.getElementById('switchCameraBtn');
   const muteBtn = document.getElementById('muteBtn');
 
-  let streams = {};
-  let currentDeviceId = null;
   let isMuted = false;
-  let audioTrack = null;
+  let streams = [];
+  let currentStreamIndex = 0;
 
-  async function getVideoDevices() {
+  async function getAllVideoInputs() {
     const devices = await navigator.mediaDevices.enumerateDevices();
     return devices.filter(d => d.kind === 'videoinput');
   }
 
-  async function startAllStreams() {
-    const videoDevices = await getVideoDevices();
+  async function requestPermissionsForAllCameras() {
+    const videoInputs = await getAllVideoInputs();
+    streams = [];
 
-    if(videoDevices.length === 0) {
-      alert("No se detectaron cámaras.");
-      return;
-    }
-
-    for (const device of videoDevices) {
+    for (let i = 0; i < videoInputs.length; i++) {
+      const deviceId = videoInputs[i].deviceId;
       try {
+        // Pedimos permiso y guardamos stream, pero no lo mostramos aún
         const stream = await navigator.mediaDevices.getUserMedia({
-          video: { deviceId: device.deviceId },
+          video: { deviceId: { exact: deviceId } },
           audio: true
         });
-        streams[device.deviceId] = stream;
-      } catch(e) {
-        console.warn("No se pudo acceder a la cámara: ", device.label, e);
+        streams.push(stream);
+        // Opcional: cerramos inmediatamente para liberar recursos pero mantenemos referencia
+        // NO cerramos para poder cambiar rápido sin pedir permiso otra vez
+      } catch (e) {
+        console.warn('No se pudo acceder a la cámara:', deviceId, e);
       }
     }
 
-    // Iniciar con la primera cámara disponible
-    currentDeviceId = Object.keys(streams)[0];
-    setStream(currentDeviceId);
+    if(streams.length === 0){
+      alert('No se detectaron cámaras o no se pudo acceder a ninguna.');
+    }
   }
 
-  function setStream(deviceId) {
-    if (!streams[deviceId]) {
-      alert("Stream no disponible para ese dispositivo");
-      return;
+  function playStream(index) {
+    if(streams.length === 0) return;
+    if (video.srcObject) {
+      video.srcObject.getTracks().forEach(t => t.stop());
     }
+    currentStreamIndex = index;
+    video.srcObject = streams[index];
 
-    // Cambio suave
-    video.style.opacity = 0;
-
-    setTimeout(() => {
-      video.srcObject = streams[deviceId];
-      audioTrack = streams[deviceId].getAudioTracks()[0];
-      if(audioTrack) audioTrack.enabled = !isMuted;
-      video.play();
-      video.style.opacity = 1;
-    }, 300);
-
-    currentDeviceId = deviceId;
+    const audioTrack = streams[index].getAudioTracks()[0];
+    if(audioTrack) audioTrack.enabled = !isMuted;
   }
 
   switchCameraBtn.addEventListener('click', () => {
-    const keys = Object.keys(streams);
-    if(keys.length < 2) {
-      alert("No hay otra cámara para cambiar.");
+    if(streams.length < 2) {
+      alert('No hay otra cámara para cambiar');
       return;
     }
-    let currentIndex = keys.indexOf(currentDeviceId);
-    let nextIndex = (currentIndex + 1) % keys.length;
-    setStream(keys[nextIndex]);
+    let nextIndex = (currentStreamIndex + 1) % streams.length;
+    playStream(nextIndex);
   });
 
   muteBtn.addEventListener('click', () => {
-    if(!audioTrack) return;
+    if (streams.length === 0) return;
+    const audioTrack = streams[currentStreamIndex].getAudioTracks()[0];
+    if (!audioTrack) return;
+
     isMuted = !isMuted;
     audioTrack.enabled = !isMuted;
     muteBtn.textContent = isMuted ? '🔇' : '🎤';
   });
 
-  // Arrancar todo
-  startAllStreams();
+  async function init() {
+    await requestPermissionsForAllCameras();
+    if(streams.length > 0) {
+      playStream(0);
+    }
+  }
 
+  init();
 </script>
 
 </body>
