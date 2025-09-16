@@ -2,28 +2,92 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Prueba cámara</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cámara múltiple (facingMode)</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+      background: black;
+    }
+
+    video {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
+      z-index: 0;
+    }
+
+    #menu {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    button {
+      padding: 12px 18px;
+      font-size: 15px;
+      font-weight: bold;
+      border: none;
+      border-radius: 10px;
+      background-color: rgba(255,255,255,0.9);
+      color: black;
+      cursor: pointer;
+      box-shadow: 0 0 8px rgba(0,0,0,0.6);
+    }
+  </style>
 </head>
 <body>
-  <video id="video" autoplay playsinline style="width: 100%; background: black;"></video>
 
-  <script>
-    const video = document.getElementById('video');
+<video id="video" autoplay playsinline muted></video>
 
-    navigator.mediaDevices.getUserMedia({ video: true })
-      .then(stream => {
-        console.log("Stream obtenido:", stream);
-        video.srcObject = stream;
-        video.onloadedmetadata = () => {
-          console.log("Metadata cargada.");
-          video.play();
-        };
-      })
-      .catch(err => {
-        console.error("Error al acceder a la cámara:", err);
-        alert("No se pudo acceder a la cámara: " + err.message);
+<div id="menu">
+  <button id="switchBtn">🔄 Cambiar cámara</button>
+</div>
+
+<script>
+  const video = document.getElementById('video');
+  const switchBtn = document.getElementById('switchBtn');
+
+  let stream = null;
+  let currentFacingMode = "user"; // user = frontal, environment = trasera
+
+  async function startCameraByFacingMode(facingMode) {
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+    }
+
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { exact: facingMode } },
+        audio: false
       });
-  </script>
+      video.srcObject = stream;
+      currentFacingMode = facingMode;
+      console.log(`Cámara iniciada: ${facingMode}`);
+    } catch (err) {
+      console.error('No se pudo iniciar la cámara:', err);
+      alert('No se pudo iniciar la cámara: ' + err.message);
+    }
+  }
+
+  switchBtn.addEventListener('click', async () => {
+    const newFacingMode = currentFacingMode === "user" ? "environment" : "user";
+    await startCameraByFacingMode(newFacingMode);
+  });
+
+  // Iniciar la cámara frontal al cargar la página
+  startCameraByFacingMode(currentFacingMode);
+</script>
+
 </body>
 </html>
-
