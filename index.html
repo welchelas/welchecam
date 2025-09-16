@@ -1,29 +1,28 @@
-async function startCamera() {
-  if (stream) {
-    stream.getTracks().forEach(track => track.stop()); // Para el stream actual si existe
-  }
-  try {
-    const newStream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: currentFacingMode },
-      audio: true
-    });
-    // Transición suave
-    video.style.opacity = 0;
-    setTimeout(() => {
-      video.srcObject = newStream;
-      video.play();
-      video.style.opacity = 1;
-    }, 300);
-    stream = newStream;
-    // Configura el micrófono según si está silenciado o no
-    const audioTrack = stream.getAudioTracks()[0];
-    if (audioTrack) audioTrack.enabled = !isMuted;
-  } catch (err) {
-    alert("Error al acceder a la cámara: " + err.message);
-  }
+let streams = {};
+let currentDeviceId = null;
+
+async function getDevices() {
+  const devices = await navigator.mediaDevices.enumerateDevices();
+  return devices.filter(device => device.kind === 'videoinput');
 }
 
-switchBtn.addEventListener('click', async () => {
-  currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
-  await startCamera();
-});
+async function startStreams() {
+  const videoDevices = await getDevices();
+  for (const device of videoDevices) {
+    streams[device.deviceId] = await navigator.mediaDevices.getUserMedia({
+      video: { deviceId: device.deviceId },
+      audio: true
+    });
+  }
+  // Empezar con el primer stream
+  currentDeviceId = videoDevices[0].deviceId;
+  video.srcObject = streams[currentDeviceId];
+}
+
+function switchCamera() {
+  const keys = Object.keys(streams);
+  const currentIndex = keys.indexOf(currentDeviceId);
+  const nextIndex = (currentIndex + 1) % keys.length;
+  currentDeviceId = keys[nextIndex];
+  video.srcObject = streams[currentDeviceId];
+}
