@@ -1,126 +1,157 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Cámara múltiple</title>
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      overflow: hidden;
-      background: black;
-    }
-
-    video {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      object-fit: cover;
-      z-index: 0;
-    }
-
-    #menu {
-      position: absolute;
-      bottom: 20px;
-      right: 20px;
-      z-index: 1000;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    button {
-      padding: 12px 18px;
-      font-size: 15px;
-      font-weight: bold;
-      border: none;
-      border-radius: 10px;
-      background-color: rgba(255,255,255,0.9);
-      color: black;
-      cursor: pointer;
-      box-shadow: 0 0 8px rgba(0,0,0,0.6);
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cámara Funcional</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background: #1e1e1e;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+        
+        .camera-container {
+            position: relative;
+            width: 100%;
+            height: 0;
+            padding-bottom: 75%; /* Relación 4:3 */
+            background: #000;
+        }
+        
+        video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .controls {
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        
+        .btn {
+            background: #4285f4;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn:active {
+            background: #3367d6;
+        }
+        
+        .status {
+            text-align: center;
+            padding: 10px;
+            background: #2c2c2c;
+        }
+    </style>
 </head>
 <body>
+    <div class="container">
+        <div class="camera-container">
+            <video id="video" autoplay playsinline></video>
+        </div>
+        
+        <div class="status" id="status">Cámara trasera activada</div>
+        
+        <div class="controls">
+            <button id="switchBtn" class="btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                    <path d="M4 4L7 7M7 7L4 10M7 7H20C20.5523 7 21 6.55228 21 6V4" stroke="white" stroke-width="2"/>
+                    <path d="M20 20L17 17M17 17L20 14M17 17H4C3.44772 17 3 17.4477 3 18V20" stroke="white" stroke-width="2"/>
+                </svg>
+                Cambiar Cámara
+            </button>
+        </div>
+    </div>
 
-<video id="video" autoplay playsinline muted></video>
-
-<div id="menu">
-  <button id="switchBtn">🔄 Cambiar cámara</button>
-</div>
-
-<script>
-  const video = document.getElementById('video');
-  const switchBtn = document.getElementById('switchBtn');
-
-  let stream = null;
-  let videoDevices = [];
-  let currentDeviceIndex = 0;
-
-  // Solicita permisos, obtiene cámaras, inicia cámara
-  async function init() {
-    try {
-      // Paso 1: Solicita permisos con constraints mínimas
-      await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-
-      // Paso 2: Ahora que hay permisos, enumeramos las cámaras
-      const devices = await navigator.mediaDevices.enumerateDevices();
-      videoDevices = devices.filter(device => device.kind === 'videoinput');
-
-      if (videoDevices.length === 0) {
-        alert('No se detectaron cámaras.');
-        return;
-      }
-
-      console.log("Cámaras disponibles:");
-      videoDevices.forEach((d, i) => {
-        console.log(`  [${i}] ${d.label}`);
-      });
-
-      // Inicia con la primera cámara
-      currentDeviceIndex = 0;
-      await startCamera(videoDevices[currentDeviceIndex].deviceId);
-    } catch (err) {
-      alert('Error accediendo a la cámara: ' + err.message);
-      console.error(err);
-    }
-  }
-
-  async function startCamera(deviceId) {
-    if (stream) {
-      stream.getTracks().forEach(track => track.stop());
-    }
-
-    try {
-      stream = await navigator.mediaDevices.getUserMedia({
-        video: { deviceId: { exact: deviceId } },
-        audio: false
-      });
-      video.srcObject = stream;
-    } catch (err) {
-      alert('No se pudo iniciar la cámara: ' + err.message);
-      console.error(err);
-    }
-  }
-
-  switchBtn.addEventListener('click', async () => {
-    if (videoDevices.length <= 1) {
-      alert('No hay más cámaras para cambiar.');
-      return;
-    }
-
-    currentDeviceIndex = (currentDeviceIndex + 1) % videoDevices.length;
-    await startCamera(videoDevices[currentDeviceIndex].deviceId);
-  });
-
-  // Iniciar al cargar la página
-  init();
-</script>
-
+    <script>
+        const video = document.getElementById('video');
+        const switchBtn = document.getElementById('switchBtn');
+        const statusDisplay = document.getElementById('status');
+        
+        let stream = null;
+        let usingFrontCamera = false;
+        
+        // Función para iniciar la cámara
+        async function initCamera() {
+            try {
+                // Detener stream actual si existe
+                if (stream) {
+                    stream.getTracks().forEach(track => track.stop());
+                }
+                
+                // Configuración para la cámara
+                const constraints = {
+                    video: {
+                        facingMode: usingFrontCamera ? "user" : "environment",
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    },
+                    audio: false
+                };
+                
+                // Obtener stream de la cámara
+                stream = await navigator.mediaDevices.getUserMedia(constraints);
+                video.srcObject = stream;
+                
+                // Actualizar estado
+                statusDisplay.textContent = usingFrontCamera ? 
+                    "Cámara frontal activada" : "Cámara trasera activada";
+                
+            } catch (error) {
+                console.error("Error al acceder a la cámara:", error);
+                statusDisplay.textContent = "Error al acceder a la cámara";
+                
+                // Intentar con la cámara opuesta si falla
+                usingFrontCamera = !usingFrontCamera;
+                setTimeout(initCamera, 1000);
+            }
+        }
+        
+        // Cambiar entre cámaras
+        switchBtn.addEventListener('click', () => {
+            usingFrontCamera = !usingFrontCamera;
+            initCamera();
+        });
+        
+        // Iniciar cuando la página cargue
+        window.addEventListener('load', initCamera);
+    </script>
 </body>
 </html>
+
