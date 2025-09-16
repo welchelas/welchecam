@@ -113,4 +113,21 @@
 
     isMuted = !isMuted;
     audioTrack.enabled = !isMuted;
-    muteBtn.textConte
+    muteBtn.textContent = isMuted ? '🔇' : '🎤';
+  });
+
+  // Inicializar
+  (async () => {
+    await getVideoDevices();
+
+    if (videoDevices.length === 0) {
+      alert('No se detectaron cámaras.');
+      return;
+    }
+
+    await startCamera(videoDevices[currentCameraIndex].deviceId);
+  })();
+</script>
+
+</body>
+</html>
