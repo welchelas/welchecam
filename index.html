@@ -2,44 +2,42 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Cámara con Audio y Cambio de Cámara</title>
+  <title>Cámara con Audio y Cambio por Doble Tap</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     body, html {
       margin: 0; padding: 0; height: 100%; background: black; overflow: hidden;
       display: flex; justify-content: center; align-items: center;
-      flex-direction: column;
     }
     video {
       width: 100vw;
       height: 100vh;
       object-fit: cover;
+      touch-action: manipulation; /* para mejorar la respuesta táctil */
     }
-    #toggleCamera {
+    #info {
       position: fixed;
-      bottom: 20px;
-      right: 20px;
-      z-index: 9999;
-      padding: 12px 20px;
-      background: rgba(0,0,0,0.7);
+      top: 10px;
+      left: 10px;
       color: white;
-      border: none;
-      border-radius: 10px;
-      font-size: 18px;
-      cursor: pointer;
+      background: rgba(0,0,0,0.5);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-family: sans-serif;
+      z-index: 9999;
       user-select: none;
     }
   </style>
 </head>
 <body>
   <video id="video" autoplay playsinline muted></video>
-  <button id="toggleCamera">Cambiar Cámara</button>
+  <div id="info">Haz doble tap para cambiar cámara</div>
 
   <script>
     const video = document.getElementById('video');
-    const btn = document.getElementById('toggleCamera');
+    const info = document.getElementById('info');
 
-    let facingMode = 'environment'; // Cámara trasera por defecto
+    let facingMode = 'environment'; // cámara trasera por defecto
     let stream;
 
     async function startStream() {
@@ -57,12 +55,20 @@
       }
     }
 
-    btn.onclick = () => {
-      facingMode = facingMode === 'environment' ? 'user' : 'environment';
-      startStream();
-    }
+    // Función para detectar doble tap (doble clic táctil)
+    let lastTap = 0;
+    window.addEventListener('touchend', (event) => {
+      const currentTime = new Date().getTime();
+      const tapLength = currentTime - lastTap;
+      if (tapLength < 300 && tapLength > 0) {
+        // Doble tap detectado
+        facingMode = (facingMode === 'environment') ? 'user' : 'environment';
+        startStream();
+      }
+      lastTap = currentTime;
+    });
 
-    // Inicia la cámara al cargar
+    // Iniciar cámara al cargar la página
     startStream();
   </script>
 </body>
