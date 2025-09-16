@@ -61,7 +61,7 @@
   const muteBtn = document.getElementById('muteBtn');
 
   let stream = null;
-  let currentFacingMode = 'environment';
+  let currentFacingMode = 'environment'; // 'environment' para trasera, 'user' para frontal
   let isMuted = false;
 
   async function startCamera() {
@@ -76,8 +76,18 @@
       });
       video.srcObject = stream;
     } catch (err) {
-      alert("Error accediendo a la cámara: " + err.message);
-      console.error(err);
+      console.warn(`No se pudo acceder a la cámara con facingMode=${currentFacingMode}:`, err);
+      // Intentar sin facingMode
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: true
+        });
+        video.srcObject = stream;
+      } catch (error) {
+        alert('No se pudo acceder a la cámara: ' + error.message);
+        console.error(error);
+      }
     }
   }
 
