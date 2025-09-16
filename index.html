@@ -57,11 +57,43 @@
   let audioEnabled = true;
   let blurEnabled = false;
 
+  // Función startCamera con búsqueda automática de la mejor resolución
   async function startCamera(facingMode) {
-    try {
-      if (currentStream) {
-        currentStream.getTracks().forEach(track => track.stop());
+    if (currentStream) {
+      currentStream.getTracks().forEach(track => track.stop());
+    }
+
+    const resolutions = [
+      { width: 3840, height: 2160 }, // 4K
+      { width: 2560, height: 1440 }, // 2K
+      { width: 1920, height: 1080 }, // Full HD
+      { width: 1280, height: 720 },  // HD
+      { width: 640, height: 480 }    // SD
+    ];
+
+    for (const res of resolutions) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { 
+            facingMode: facingMode,
+            width: { exact: res.width },
+            height: { exact: res.height }
+          },
+          audio: true
+        });
+        currentStream = stream;
+        video.srcObject = stream;
+        setAudioEnabled(audioEnabled);
+        updateBlur();
+        console.log(`Cámara iniciada con resolución exacta: ${res.width}x${res.height}`);
+        return; // Sale si tuvo éxito
+      } catch (err) {
+        console.warn(`Resolución ${res.width}x${res.height} no soportada, probando otra...`);
       }
+    }
+
+    // Si no se pudo con resoluciones exactas, usar configuración por defecto
+    try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: facingMode },
         audio: true
@@ -70,7 +102,7 @@
       video.srcObject = stream;
       setAudioEnabled(audioEnabled);
       updateBlur();
-      console.log(`Cámara iniciada con facingMode: ${facingMode}`);
+      console.log('Cámara iniciada con configuración por defecto (sin resolución fija).');
     } catch (err) {
       alert('No se pudo iniciar la cámara: ' + err.message);
       console.error(err);
@@ -123,7 +155,7 @@
 
 <!-- Overlay chat -->
 <iframe 
-  src="https://kicktools.app/fusion_chat/fusion-chat.html?kick=welchelas&twitch=welchelas&font=Inter&fontSize=medium&fontShadow=shadow-na&fontColor=%23ffffff&theme=custom&fontCase=none&timestamp=on&platformBadges=on&userBadges=on&bots=on&highlight=on&fade=on&fadeTime=10"
+  src="https://kicktools.app/fusion_chat/fusion-chat.html?kick=&twitch=welchelas&font=Inter&fontSize=xx-large&fontShadow=shadow-na&fontColor=%23ffffff&theme=custom&fontCase=none&timestamp=on&platformBadges=on&userBadges=on&bots=on&highlight=on&fade=on&fadeTime=40"
   style="
     position: fixed;
     bottom: 10px;
@@ -140,8 +172,3 @@
 
 </body>
 </html>
-
-
-
-
-
