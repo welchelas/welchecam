@@ -3,17 +3,20 @@
 <head>
   <meta charset="UTF-8" />
   <title>Cámara con Audio y Cambio por Doble Tap</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
   <style>
     body, html {
       margin: 0; padding: 0; height: 100%; background: black; overflow: hidden;
       display: flex; justify-content: center; align-items: center;
+      touch-action: manipulation; /* evita zoom y otros gestos */
     }
     video {
       width: 100vw;
       height: 100vh;
       object-fit: cover;
-      touch-action: manipulation; /* para mejorar la respuesta táctil */
+      -webkit-user-select: none;
+      user-select: none;
+      touch-action: manipulation;
     }
     #info {
       position: fixed;
@@ -55,7 +58,12 @@
       }
     }
 
-    // Función para detectar doble tap (doble clic táctil)
+    // Prevenir zoom por gesto en iOS
+    window.addEventListener('gesturestart', function (e) {
+      e.preventDefault();
+    });
+
+    // Detectar doble tap sin zoom
     let lastTap = 0;
     window.addEventListener('touchend', (event) => {
       const currentTime = new Date().getTime();
@@ -68,7 +76,7 @@
       lastTap = currentTime;
     });
 
-    // Iniciar cámara al cargar la página
+    // Iniciar cámara al cargar
     startStream();
   </script>
 </body>
