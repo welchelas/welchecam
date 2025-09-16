@@ -65,17 +65,23 @@
   const muteBtn = document.getElementById('muteBtn');
 
   let stream = null;
-  let currentFacingMode = 'environment';
+  let currentCameraIndex = 0;
+  let videoDevices = [];
   let isMuted = false;
 
-  async function startCamera() {
+  async function getVideoDevices() {
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    videoDevices = devices.filter(device => device.kind === 'videoinput');
+  }
+
+  async function startCamera(deviceId) {
     if (stream) {
       stream.getTracks().forEach(track => track.stop());
     }
 
     try {
       stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: currentFacingMode }, // 👈 YA NO USA "exact"
+        video: { deviceId: { exact: deviceId } },
         audio: true
       });
 
@@ -92,9 +98,12 @@
     }
   }
 
-  switchBtn.addEventListener('click', () => {
-    currentFacingMode = (currentFacingMode === 'user') ? 'environment' : 'user';
-    startCamera();
+  switchBtn.addEventListener('click', async () => {
+    if (videoDevices.length <= 1) return;
+
+    currentCameraIndex = (currentCameraIndex + 1) % videoDevices.length;
+    const nextDeviceId = videoDevices[currentCameraIndex].deviceId;
+    await startCamera(nextDeviceId);
   });
 
   muteBtn.addEventListener('click', () => {
@@ -104,12 +113,4 @@
 
     isMuted = !isMuted;
     audioTrack.enabled = !isMuted;
-    muteBtn.textContent = isMuted ? '🔇' : '🎤';
-  });
-
-  // Inicia la cámara al cargar la página
-  startCamera();
-</script>
-
-</body>
-</html>
+    muteBtn.textConte
