@@ -61,39 +61,44 @@
   const muteBtn = document.getElementById('muteBtn');
 
   let stream = null;
-  let currentFacingMode = 'environment'; // 'environment' para trasera, 'user' para frontal
+  let videoDevices = []; // lista de cámaras disponibles
+  let currentDeviceIndex = 0;
   let isMuted = false;
 
-  async function startCamera() {
+  async function getVideoDevices() {
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    videoDevices = devices.filter(device => device.kind === 'videoinput');
+  }
+
+  async function startCamera(deviceId = null) {
     if (stream) {
       stream.getTracks().forEach(track => track.stop());
     }
 
+    const constraints = {
+      video: deviceId ? { deviceId: { exact: deviceId } } : true,
+      audio: true
+    };
+
     try {
-      stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: currentFacingMode },
-        audio: true
-      });
+      stream = await navigator.mediaDevices.getUserMedia(constraints);
       video.srcObject = stream;
+      // Resetea estado de mute porque es un stream nuevo
+      isMuted = false;
+      muteBtn.textContent = '🔇 Silenciar';
     } catch (err) {
-      console.warn(`No se pudo acceder a la cámara con facingMode=${currentFacingMode}:`, err);
-      // Intentar sin facingMode
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: true,
-          audio: true
-        });
-        video.srcObject = stream;
-      } catch (error) {
-        alert('No se pudo acceder a la cámara: ' + error.message);
-        console.error(error);
-      }
+      alert('No se pudo acceder a la cámara: ' + err.message);
+      console.error(err);
     }
   }
 
-  switchBtn.addEventListener('click', () => {
-    currentFacingMode = (currentFacingMode === 'user') ? 'environment' : 'user';
-    startCamera();
+  switchBtn.addEventListener('click', async () => {
+    if (videoDevices.length <= 1) {
+      alert('No hay más cámaras para cambiar.');
+      return;
+    }
+    currentDeviceIndex = (currentDeviceIndex + 1) % videoDevices.length;
+    await startCamera(videoDevices[currentDeviceIndex].deviceId);
   });
 
   muteBtn.addEventListener('click', () => {
@@ -106,7 +111,17 @@
     }
   });
 
-  startCamera();
+  async function init() {
+    await getVideoDevices();
+    if (videoDevices.length === 0) {
+      alert('No se detectaron cámaras.');
+      return;
+    }
+    currentDeviceIndex = 0;
+    await startCamera(videoDevices[currentDeviceIndex].deviceId);
+  }
+
+  init();
 </script>
 
 </body>
