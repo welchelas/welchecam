@@ -25,38 +25,34 @@
 
     #menu {
       position: absolute;
-      top: 20px;
-      left: 20px;
+      bottom: 20px;
+      right: 20px;
       z-index: 1000;
       display: flex;
-      flex-direction: row;
+      flex-direction: column;
       gap: 12px;
     }
 
     button {
-      padding: 12px 16px;
-      font-size: 20px;
+      padding: 12px 18px;
+      font-size: 15px;
       font-weight: bold;
       border: none;
-      border-radius: 8px;
-      background-color: rgba(255, 255, 255, 0.9);
+      border-radius: 10px;
+      background-color: rgba(255,255,255,0.9);
       color: black;
       cursor: pointer;
-      box-shadow: 0 0 6px rgba(0, 0, 0, 0.4);
-    }
-
-    button:active {
-      background-color: rgba(200, 200, 200, 0.9);
+      box-shadow: 0 0 8px rgba(0,0,0,0.6);
     }
   </style>
 </head>
 <body>
 
-<video id="video" autoplay playsinline muted></video>
+<video id="video" autoplay playsinline></video>
 
 <div id="menu">
-  <button id="switchBtn" title="Cambiar cámara">🔄</button>
-  <button id="muteBtn" title="Silenciar / Activar micrófono">🎤</button>
+  <button id="switchBtn">🔄 Cámara</button>
+  <button id="muteBtn">🔇 Silenciar</button>
 </div>
 
 <script>
@@ -65,68 +61,42 @@
   const muteBtn = document.getElementById('muteBtn');
 
   let stream = null;
-  let currentCameraIndex = 0;
-  let videoDevices = [];
+  let currentFacingMode = 'environment';
   let isMuted = false;
 
-  async function getVideoDevices() {
-    const devices = await navigator.mediaDevices.enumerateDevices();
-    videoDevices = devices.filter(device => device.kind === 'videoinput');
-  }
-
-  async function startCamera(deviceId) {
+  async function startCamera() {
     if (stream) {
       stream.getTracks().forEach(track => track.stop());
     }
 
     try {
       stream = await navigator.mediaDevices.getUserMedia({
-        video: { deviceId: { exact: deviceId } },
+        video: { facingMode: { exact: currentFacingMode } },
         audio: true
       });
-
       video.srcObject = stream;
-
-      const audioTrack = stream.getAudioTracks()[0];
-      if (audioTrack) {
-        audioTrack.enabled = !isMuted;
-      }
-
     } catch (err) {
       alert("Error accediendo a la cámara: " + err.message);
       console.error(err);
     }
   }
 
-  switchBtn.addEventListener('click', async () => {
-    if (videoDevices.length <= 1) return;
-
-    currentCameraIndex = (currentCameraIndex + 1) % videoDevices.length;
-    const nextDeviceId = videoDevices[currentCameraIndex].deviceId;
-    await startCamera(nextDeviceId);
+  switchBtn.addEventListener('click', () => {
+    currentFacingMode = (currentFacingMode === 'user') ? 'environment' : 'user';
+    startCamera();
   });
 
   muteBtn.addEventListener('click', () => {
     if (!stream) return;
     const audioTrack = stream.getAudioTracks()[0];
-    if (!audioTrack) return;
-
-    isMuted = !isMuted;
-    audioTrack.enabled = !isMuted;
-    muteBtn.textContent = isMuted ? '🔇' : '🎤';
+    if (audioTrack) {
+      isMuted = !isMuted;
+      audioTrack.enabled = !isMuted;
+      muteBtn.textContent = isMuted ? '🔈 Activar' : '🔇 Silenciar';
+    }
   });
 
-  // Inicializar
-  (async () => {
-    await getVideoDevices();
-
-    if (videoDevices.length === 0) {
-      alert('No se detectaron cámaras.');
-      return;
-    }
-
-    await startCamera(videoDevices[currentCameraIndex].deviceId);
-  })();
+  startCamera();
 </script>
 
 </body>
