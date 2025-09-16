@@ -2,8 +2,8 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cámara Funcional</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Cámara Dual con Overlay</title>
     <style>
         * {
             margin: 0;
@@ -12,263 +12,247 @@
         }
         
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #121212;
             color: white;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            padding: 20px;
             text-align: center;
-        }
-        
-        .container {
-            width: 100%;
-            max-width: 600px;
-            background: rgba(0, 0, 0, 0.7);
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-        }
-        
-        .header {
-            padding: 25px;
-            background: rgba(0, 0, 0, 0.8);
-            border-bottom: 2px solid #ff9900;
+            padding: 20px;
+            overflow-x: hidden;
         }
         
         h1 {
-            font-size: 28px;
-            margin-bottom: 10px;
-            color: #ff9900;
+            font-size: 24px;
+            margin-bottom: 20px;
         }
         
-        .instructions {
-            font-size: 16px;
-            opacity: 0.9;
-            margin-bottom: 10px;
-            line-height: 1.5;
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
         }
         
         .camera-container {
             position: relative;
             width: 100%;
-            padding-top: 75%; /* Relación 4:3 */
+            margin-bottom: 20px;
+            border-radius: 12px;
             overflow: hidden;
-            background: #000;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
         }
         
-        video {
+        #videoElement {
+            width: 100%;
+            height: auto;
+            display: block;
+            background-color: #000;
+            transform: scaleX(-1); /* Espejo para que parezca más natural */
+        }
+        
+        .overlay {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            object-fit: cover;
-            background: #000;
-            transform: scaleX(-1); /* Efecto espejo para selfie */
+            pointer-events: none; /* Permite interactuar con los controles debajo */
+            z-index: 10;
         }
         
         .controls {
-            padding: 25px;
             display: flex;
             flex-direction: column;
-            gap: 20px;
-            background: rgba(0, 0, 0, 0.8);
+            gap: 15px;
+            margin-bottom: 20px;
         }
         
-        .btn {
-            background: linear-gradient(to bottom, #ff9900, #ff6600);
-            color: white;
-            border: none;
-            padding: 16px 30px;
-            border-radius: 50px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-            transition: all 0.3s ease;
+        .url-input {
             display: flex;
-            align-items: center;
-            justify-content: center;
             gap: 10px;
         }
         
-        .btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-            background: linear-gradient(to bottom, #ffbb33, #ff7733);
-        }
-        
-        .btn:active {
-            transform: translateY(1px);
-        }
-        
-        .status {
-            padding: 15px;
+        input[type="text"] {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: #333;
+            color: white;
             font-size: 16px;
-            background: rgba(0, 0, 0, 0.6);
-            border-top: 1px solid #333;
         }
         
-        .permission-prompt {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.9);
-            padding: 30px;
-            border-radius: 15px;
-            text-align: center;
-            width: 80%;
-            max-width: 400px;
-            z-index: 100;
-        }
-        
-        .permission-prompt p {
-            margin-bottom: 20px;
-            line-height: 1.5;
-        }
-        
-        .permission-btn {
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
             background: #4285f4;
             color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 50px;
-            font-size: 16px;
             font-weight: bold;
             cursor: pointer;
+            transition: background 0.3s;
         }
         
-        .footer {
-            margin-top: 20px;
-            font-size: 14px;
-            opacity: 0.8;
+        button:hover {
+            background: #3367d6;
         }
         
-        @media (max-width: 600px) {
-            .container {
-                border-radius: 15px;
-            }
-            
+        .switch-btn {
+            background: #5f6368;
+        }
+        
+        .switch-btn:hover {
+            background: #80868b;
+        }
+        
+        .error {
+            color: #f44336;
+            margin: 10px 0;
+            display: none;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .camera-label {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            z-index: 20;
+        }
+        
+        /* Estilos para móviles */
+        @media (max-width: 768px) {
             h1 {
-                font-size: 24px;
+                font-size: 20px;
             }
             
-            .instructions {
-                font-size: 14px;
-            }
-            
-            .btn {
-                padding: 14px 25px;
-                font-size: 16px;
+            button {
+                padding: 14px;
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>📷 Cámara Funcional</h1>
-            <p class="instructions">Haz clic en "Activar Cámara" para comenzar. Luego usa "Cambiar Cámara" para alternar entre frontal y trasera.</p>
-        </div>
+        <h1>Cámara Dual con Overlay</h1>
         
         <div class="camera-container">
-            <video id="video" autoplay playsinline></video>
-            <div class="permission-prompt" id="permissionPrompt">
-                <p>Para usar esta aplicación, necesitamos acceso a tu cámara.</p>
-                <button class="permission-btn" id="activateBtn">Activar Cámara</button>
-            </div>
+            <video id="videoElement" autoplay playsinline></video>
+            <div class="overlay" id="overlay"></div>
+            <div class="camera-label" id="cameraLabel">Cámara frontal</div>
         </div>
         
-        <div class="status" id="status">Esperando activación de cámara...</div>
+        <div class="error" id="errorMessage"></div>
         
         <div class="controls">
-            <button id="switchBtn" class="btn" disabled>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M4 4L7 7M7 7L4 10M7 7H20C20.5523 7 21 6.55228 21 6V4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                    <path d="M20 20L17 17M17 17L20 14M17 17H4C3.44772 17 3 17.4477 3 18V20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-                Cambiar Cámara
-            </button>
+            <div class="url-input">
+                <input type="text" id="overlayUrl" placeholder="URL de la imagen para overlay">
+                <button id="loadOverlayBtn">Cargar Overlay</button>
+            </div>
+            
+            <button id="switchCameraBtn" class="switch-btn">Cambiar a cámara trasera</button>
         </div>
-    </div>
-    
-    <div class="footer">
-        <p>Esta aplicación funciona en Chrome, Firefox, Safari y navegadores móviles modernos</p>
     </div>
 
     <script>
-        const video = document.getElementById('video');
-        const switchBtn = document.getElementById('switchBtn');
-        const statusDisplay = document.getElementById('status');
-        const permissionPrompt = document.getElementById('permissionPrompt');
-        const activateBtn = document.getElementById('activateBtn');
+        // Variables globales
+        let currentStream = null;
+        let usingFrontCamera = true;
+        const constraints = {
+            video: {
+                facingMode: "user" // Comienza con la cámara frontal
+            }
+        };
         
-        let stream = null;
-        let usingFrontCamera = false;
+        // Elementos DOM
+        const video = document.getElementById('videoElement');
+        const overlay = document.getElementById('overlay');
+        const errorMsg = document.getElementById('errorMessage');
+        const switchBtn = document.getElementById('switchCameraBtn');
+        const loadOverlayBtn = document.getElementById('loadOverlayBtn');
+        const overlayUrl = document.getElementById('overlayUrl');
+        const cameraLabel = document.getElementById('cameraLabel');
         
         // Función para iniciar la cámara
-        async function initCamera() {
+        async function startCamera(constraints) {
+            // Detener stream actual si existe
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+            }
+            
             try {
-                // Detener stream actual si existe
-                if (stream) {
-                    stream.getTracks().forEach(track => track.stop());
-                }
+                // Solicitar acceso a la cámara
+                currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+                video.srcObject = currentStream;
+                errorMsg.style.display = 'none';
                 
-                // Configuración para la cámara
-                const constraints = {
-                    video: {
-                        facingMode: usingFrontCamera ? "user" : "environment",
-                        width: { ideal: 1280 },
-                        height: { ideal: 720 }
-                    },
-                    audio: false
-                };
-                
-                // Obtener stream de la cámara
-                stream = await navigator.mediaDevices.getUserMedia(constraints);
-                video.srcObject = stream;
-                
-                // Ajustar efecto espejo para selfie
-                if (usingFrontCamera) {
-                    video.style.transform = 'scaleX(-1)';
-                } else {
-                    video.style.transform = 'scaleX(1)';
-                }
-                
-                // Actualizar estado y habilitar botón
-                statusDisplay.textContent = usingFrontCamera ? 
-                    "Cámara frontal activada" : "Cámara trasera activada";
-                switchBtn.disabled = false;
-                permissionPrompt.style.display = 'none';
+                // Actualizar etiqueta de la cámara
+                cameraLabel.textContent = usingFrontCamera ? "Cámara frontal" : "Cámara trasera";
                 
             } catch (error) {
-                console.error("Error al acceder a la cámara:", error);
-                statusDisplay.textContent = "Error al acceder a la cámara. Asegúrate de permitir el acceso.";
-                
-                // Revertir el cambio si falla
-                usingFrontCamera = !usingFrontCamera;
+                console.error('Error al acceder a la cámara:', error);
+                errorMsg.textContent = `Error: ${error.message || 'No se pudo acceder a la cámara'}`;
+                errorMsg.style.display = 'block';
             }
         }
         
-        // Cambiar entre cámaras
-        switchBtn.addEventListener('click', () => {
+        // Función para cambiar entre cámaras
+        function switchCamera() {
             usingFrontCamera = !usingFrontCamera;
-            initCamera();
-        });
-        
-        // Activar cámara cuando el usuario hace clic en el botón
-        activateBtn.addEventListener('click', initCamera);
-        
-        // Verificar si el navegador soporta la API
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-            statusDisplay.textContent = "Tu navegador no soporta el acceso a la cámara.";
-            permissionPrompt.style.display = 'none';
+            
+            const newConstraints = {
+                video: {
+                    facingMode: usingFrontCamera ? "user" : "environment"
+                }
+            };
+            
+            // Actualizar texto del botón
+            switchBtn.textContent = usingFrontCamera ? 
+                "Cambiar a cámara trasera" : "Cambiar a cámara frontal";
+            
+            // Iniciar con la nueva cámara
+            startCamera(newConstraints);
         }
+        
+        // Función para cargar overlay desde URL
+        function loadOverlay() {
+            const url = overlayUrl.value.trim();
+            
+            if (!url) {
+                errorMsg.textContent = "Por favor, introduce una URL válida";
+                errorMsg.style.display = 'block';
+                return;
+            }
+            
+            // Crear imagen para el overlay
+            const img = new Image();
+            img.onload = function() {
+                overlay.style.backgroundImage = `url('${url}')`;
+                overlay.style.backgroundSize = 'contain';
+                overlay.style.backgroundRepeat = 'no-repeat';
+                overlay.style.backgroundPosition = 'center';
+                errorMsg.style.display = 'none';
+            };
+            
+            img.onerror = function() {
+                errorMsg.textContent = "Error al cargar la imagen. Verifica la URL.";
+                errorMsg.style.display = 'block';
+            };
+            
+            img.src = url;
+        }
+        
+        // Event Listeners
+        switchBtn.addEventListener('click', switchCamera);
+        loadOverlayBtn.addEventListener('click', loadOverlay);
+        
+        // Iniciar la cámara al cargar la página
+        window.addEventListener('load', () => {
+            startCamera(constraints);
+        });
     </script>
 </body>
 </html>
