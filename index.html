@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Cámara OBS</title>
+  <title>Cámara múltiple</title>
   <style>
     html, body {
       margin: 0;
@@ -51,43 +51,59 @@
 <video id="video" autoplay playsinline muted></video>
 
 <div id="menu">
-  <button id="switchBtn">🔄 Cámara</button>
-  <button id="muteBtn">🔇 Silenciar</button>
+  <button id="switchBtn">🔄 Cambiar cámara</button>
 </div>
 
 <script>
   const video = document.getElementById('video');
   const switchBtn = document.getElementById('switchBtn');
-  const muteBtn = document.getElementById('muteBtn');
 
   let stream = null;
-  let videoDevices = []; // lista de cámaras disponibles
+  let videoDevices = [];
   let currentDeviceIndex = 0;
-  let isMuted = false;
 
-  async function getVideoDevices() {
-    const devices = await navigator.mediaDevices.enumerateDevices();
-    videoDevices = devices.filter(device => device.kind === 'videoinput');
+  // Solicita permisos, obtiene cámaras, inicia cámara
+  async function init() {
+    try {
+      // Paso 1: Solicita permisos con constraints mínimas
+      await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+
+      // Paso 2: Ahora que hay permisos, enumeramos las cámaras
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      videoDevices = devices.filter(device => device.kind === 'videoinput');
+
+      if (videoDevices.length === 0) {
+        alert('No se detectaron cámaras.');
+        return;
+      }
+
+      console.log("Cámaras disponibles:");
+      videoDevices.forEach((d, i) => {
+        console.log(`  [${i}] ${d.label}`);
+      });
+
+      // Inicia con la primera cámara
+      currentDeviceIndex = 0;
+      await startCamera(videoDevices[currentDeviceIndex].deviceId);
+    } catch (err) {
+      alert('Error accediendo a la cámara: ' + err.message);
+      console.error(err);
+    }
   }
 
-  async function startCamera(deviceId = null) {
+  async function startCamera(deviceId) {
     if (stream) {
       stream.getTracks().forEach(track => track.stop());
     }
 
-    const constraints = {
-      video: deviceId ? { deviceId: { exact: deviceId } } : true,
-      audio: true
-    };
-
     try {
-      stream = await navigator.mediaDevices.getUserMedia(constraints);
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: { deviceId: { exact: deviceId } },
+        audio: false
+      });
       video.srcObject = stream;
-      // Resetea estado de mute porque es un stream nuevo
-      isMuted = false;
-      muteBtn.textContent = '🔇 Silenciar';
     } catch (err) {
-      alert('No se pudo acceder a la cámara: ' + err.message);
+      alert('No se pudo iniciar la cámara: ' + err.message);
       console.error(err);
     }
   }
@@ -97,30 +113,12 @@
       alert('No hay más cámaras para cambiar.');
       return;
     }
+
     currentDeviceIndex = (currentDeviceIndex + 1) % videoDevices.length;
     await startCamera(videoDevices[currentDeviceIndex].deviceId);
   });
 
-  muteBtn.addEventListener('click', () => {
-    if (!stream) return;
-    const audioTrack = stream.getAudioTracks()[0];
-    if (audioTrack) {
-      isMuted = !isMuted;
-      audioTrack.enabled = !isMuted;
-      muteBtn.textContent = isMuted ? '🔈 Activar' : '🔇 Silenciar';
-    }
-  });
-
-  async function init() {
-    await getVideoDevices();
-    if (videoDevices.length === 0) {
-      alert('No se detectaron cámaras.');
-      return;
-    }
-    currentDeviceIndex = 0;
-    await startCamera(videoDevices[currentDeviceIndex].deviceId);
-  }
-
+  // Iniciar al cargar la página
   init();
 </script>
 
