@@ -2,49 +2,55 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Cámara + Audio + Chat + Cambiar Cámara</title>
+  <title>Cámara con Audio y Botón de Cambio - Máxima Calidad</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     html, body {
       margin: 0;
       padding: 0;
-      overflow: hidden;
       background: black;
       height: 100%;
+      overflow: hidden;
     }
-    #video {
-      position: absolute;
-      top: 0; left: 0;
+
+    video {
+      position: fixed;
+      top: 0;
+      left: 0;
       width: 100vw;
       height: 100vh;
       object-fit: cover;
       z-index: 1;
     }
+
     #overlay {
-      position: absolute;
-      bottom: 0; right: 0;
+      position: fixed;
+      bottom: 0;
+      right: 0;
       width: 30vw;
       height: 50vh;
-      z-index: 2;
+      z-index: 3;
       pointer-events: none;
     }
+
     iframe {
       width: 100%;
       height: 100%;
       border: none;
       background: transparent;
     }
+
     #toggleCamera {
       position: fixed;
-      bottom: 10px;
-      right: 10px;
+      bottom: 15px;
+      right: 15px;
       z-index: 9999;
-      padding: 12px 16px;
-      background-color: rgba(0, 0, 0, 0.7);
-      color: #fff;
+      padding: 12px 18px;
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      font-size: 16px;
       border: none;
       border-radius: 8px;
-      font-size: 16px;
       cursor: pointer;
     }
   </style>
@@ -56,7 +62,7 @@
 
   <div id="overlay">
     <iframe 
-      src="https://kicktools.app/fusion_chat/fusion-chat.html?kick=&twitch=welchelas&font=Inter&fontSize=xx-large&fontShadow=shadow-na&fontColor=%23ffffff&theme=custom&fontCase=none&timestamp=on&platformBadges=on&userBadges=on&bots=on&highlight=on&fade=on&fadeTime=40" 
+      src="https://kicktools.app/fusion_chat/fusion-chat.html?kick=&twitch=welchelas&font=Inter&fontSize=x-large&fontShadow=shadow-na&fontColor=%23ffffff&theme=custom&fontCase=none&timestamp=on&platformBadges=on&userBadges=on&bots=on&highlight=on&fade=on&fadeTime=40"
       allowtransparency="true"
       frameborder="0">
     </iframe>
@@ -66,7 +72,7 @@
     const video = document.getElementById('video');
     const toggleBtn = document.getElementById('toggleCamera');
 
-    let currentFacing = "environment"; // Empieza con la cámara trasera
+    let currentFacing = "environment"; // por defecto cámara trasera
     let stream = null;
 
     async function startCamera(facingMode) {
@@ -76,8 +82,12 @@
 
       try {
         stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { exact: facingMode } },
-          audio: true // ✅ ACTIVADO el micrófono
+          video: {
+            facingMode: { exact: facingMode },
+            width: { ideal: 1920 },
+            height: { ideal: 1080 }
+          },
+          audio: true
         });
         video.srcObject = stream;
         currentFacing = facingMode;
@@ -86,12 +96,12 @@
       }
     }
 
-    toggleBtn.addEventListener('click', () => {
+    toggleBtn.addEventListener("click", () => {
       const nextFacing = currentFacing === "environment" ? "user" : "environment";
       startCamera(nextFacing);
     });
 
-    // Iniciar cámara al cargar
+    // Iniciar al cargar la página
     startCamera(currentFacing);
   </script>
 </body>
