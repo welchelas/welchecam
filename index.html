@@ -1,60 +1,47 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Test botón visible</title>
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      overflow: hidden;
-      background-color: black;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-    #container {
-      position: relative;
-      width: 100vw;
-      height: 100vh;
-      background: black;
-    }
-    video {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      background: black;
-    }
-    #switchBtn {
-      position: absolute;
-      bottom: 30px;
-      right: 30px;
-      z-index: 10000;
-      padding: 25px 45px;
-      font-size: 28px;
-      font-weight: 900;
-      background-color: #ff0000;
-      color: white;
-      border: 3px solid yellow;
-      border-radius: 15px;
-      cursor: pointer;
-      user-select: none;
-      -webkit-user-select: none;
-      box-shadow: 0 0 20px yellow;
-      transition: background-color 0.3s ease;
-    }
-    #switchBtn:hover {
-      background-color: #ff5555;
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Cámara con botón visible</title>
+<style>
+  html, body {
+    margin: 0; padding: 0; height: 100%;
+    overflow: hidden;
+    background: black;
+  }
+  video {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw;
+    height: 100vh;
+    object-fit: cover;
+    background: black;
+    z-index: 0;
+  }
+  #switchBtn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 100000;
+    padding: 20px 40px;
+    background: yellow;
+    color: black;
+    font-size: 22px;
+    font-weight: bold;
+    border: 3px solid black;
+    border-radius: 12px;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    box-shadow: 0 0 10px black;
+  }
+</style>
 </head>
 <body>
-  <div id="container">
-    <video id="video" autoplay playsinline muted></video>
-    <button id="switchBtn" aria-label="Cambiar cámara">CAMBIAR CÁMARA</button>
-  </div>
+
+  <video id="video" autoplay playsinline muted></video>
+  <button id="switchBtn">CAMBIAR CÁMARA</button>
 
   <script>
     const video = document.getElementById('video');
@@ -69,12 +56,12 @@
       }
       try {
         stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { exact: facingMode }, width: { ideal: 1920 }, height: { ideal: 1080 } },
+          video: { facingMode: { exact: facingMode } },
           audio: true
         });
         video.srcObject = stream;
-      } catch (error) {
-        alert('Error al acceder a la cámara o micrófono: ' + error.message);
+      } catch (err) {
+        alert('Error: ' + err.message);
       }
     }
 
