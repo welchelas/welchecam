@@ -50,7 +50,7 @@
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: facingMode },
-        audio: false
+        audio: true
       });
       video.srcObject = stream;
       console.log(`Cámara iniciada con facingMode: ${facingMode}`);
