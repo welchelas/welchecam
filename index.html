@@ -2,48 +2,53 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Cámara con Audio y Cambio por Toque Largo</title>
+  <title>Cámara con Audio y Botón Visible para Cambiar Cámara</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
   <style>
     html, body {
       margin: 0; padding: 0; height: 100%; background: black; overflow: hidden;
-      touch-action: manipulation;
+      display: flex; justify-content: center; align-items: center;
       -webkit-user-select: none;
       user-select: none;
-      -webkit-touch-callout: none;
-      -webkit-tap-highlight-color: transparent;
-      display: flex; justify-content: center; align-items: center;
+      touch-action: manipulation;
     }
     video {
       width: 100vw;
       height: 100vh;
       object-fit: cover;
-      touch-action: manipulation;
-      -webkit-user-select: none;
-      user-select: none;
     }
-    #info {
+    #switchBtn {
       position: fixed;
-      top: 10px;
-      left: 10px;
-      color: white;
-      background: rgba(0,0,0,0.5);
-      padding: 6px 12px;
-      border-radius: 6px;
-      font-family: sans-serif;
+      bottom: 20px;
+      right: 20px;
       z-index: 9999;
+      padding: 20px 30px;
+      font-size: 24px;
+      font-weight: bold;
+      border: none;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.9);
+      color: #000;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
       user-select: none;
       -webkit-user-select: none;
+      transition: background 0.3s ease;
+    }
+    #switchBtn:hover {
+      background: rgba(255, 255, 255, 1);
     }
   </style>
 </head>
 <body>
   <video id="video" autoplay playsinline muted></video>
-  <div id="info">Mantén presionada la pantalla 1 segundo para cambiar cámara</div>
+  <button id="switchBtn" aria-label="Cambiar cámara">CAMBIAR CÁMARA</button>
 
   <script>
     const video = document.getElementById('video');
-    let facingMode = 'environment'; // cámara trasera por defecto
+    const switchBtn = document.getElementById('switchBtn');
+
+    let facingMode = 'environment'; // cámara trasera
     let stream;
 
     async function startStream() {
@@ -61,21 +66,14 @@
       }
     }
 
-    let pressTimer;
-
-    window.addEventListener('touchstart', (e) => {
-      pressTimer = setTimeout(() => {
-        // Cambiar cámara después de 1 segundo de mantener presionado
-        facingMode = (facingMode === 'environment') ? 'user' : 'environment';
-        startStream();
-      }, 1000); // 1000 ms = 1 segundo
-    });
-
-    window.addEventListener('touchend', (e) => {
-      clearTimeout(pressTimer);
+    switchBtn.addEventListener('click', () => {
+      facingMode = (facingMode === 'environment') ? 'user' : 'environment';
+      startStream();
     });
 
     startStream();
   </script>
 </body>
 </html>
+
+
