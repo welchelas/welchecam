@@ -48,7 +48,7 @@
 </head>
 <body>
 
-<video id="video" autoplay playsinline></video>
+<video id="video" autoplay playsinline muted></video>
 
 <div id="menu">
   <button id="switchBtn">🔄 Cámara</button>
@@ -71,7 +71,7 @@
 
     try {
       stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { exact: currentFacingMode } },
+        video: { facingMode: currentFacingMode },
         audio: true
       });
       video.srcObject = stream;
