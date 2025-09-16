@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Cámara múltiple (mejor manejo errores)</title>
+  <title>Cámara múltiple (recarga para cambiar cámara)</title>
   <style>
     html, body {
       margin: 0; padding: 0; height: 100%; overflow: hidden; background: black;
@@ -34,74 +34,42 @@
   const video = document.getElementById('video');
   const switchBtn = document.getElementById('switchBtn');
 
-  let stream = null;
-  let videoDevices = [];
-  let currentDeviceIndex = 0;
+  // Lee la cámara preferida o usa 'user' (frontal) por defecto
+  function getPreferredCamera() {
+    return localStorage.getItem('preferredCamera') || 'user';
+  }
 
-  async function init() {
+  // Guarda la cámara preferida
+  function setPreferredCamera(facingMode) {
+    localStorage.setItem('preferredCamera', facingMode);
+  }
+
+  async function startCamera(facingMode) {
     try {
-      await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-      const devices = await navigator.mediaDevices.enumerateDevices();
-      videoDevices = devices.filter(device => device.kind === 'videoinput');
-
-      if (videoDevices.length === 0) {
-        alert('No se detectaron cámaras.');
-        return;
-      }
-
-      console.log('Cámaras detectadas:');
-      videoDevices.forEach((d,i) => {
-        console.log(`[${i}] label: ${d.label}, deviceId: ${d.deviceId}`);
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: facingMode },
+        audio: false
       });
-
-      currentDeviceIndex = videoDevices.findIndex(d => d.label.toLowerCase().includes('front'));
-      if(currentDeviceIndex < 0) currentDeviceIndex = 0;
-
-      await startCamera(videoDevices[currentDeviceIndex].deviceId);
+      video.srcObject = stream;
+      console.log(`Cámara iniciada con facingMode: ${facingMode}`);
     } catch (err) {
-      alert('Error accediendo a la cámara: ' + err.message);
+      alert('No se pudo iniciar la cámara: ' + err.message);
       console.error(err);
     }
   }
 
-  async function startCamera(deviceId) {
-    if (stream) {
-      stream.getTracks().forEach(track => track.stop());
-    }
-    stream = await navigator.mediaDevices.getUserMedia({
-      video: { deviceId: { exact: deviceId } },
-      audio: false
-    });
-    video.srcObject = stream;
-  }
-
-  switchBtn.addEventListener('click', async () => {
-    if(videoDevices.length <= 1) {
-      alert('No hay más cámaras para cambiar.');
-      return;
-    }
-
-    let intentos = 0;
-    const total = videoDevices.length;
-
-    do {
-      currentDeviceIndex = (currentDeviceIndex + 1) % total;
-      try {
-        await startCamera(videoDevices[currentDeviceIndex].deviceId);
-        console.log(`Cámara cambiada a índice ${currentDeviceIndex}`);
-        break;
-      } catch (err) {
-        console.warn(`No se pudo iniciar cámara en índice ${currentDeviceIndex}:`, err.message);
-        intentos++;
-      }
-    } while (intentos < total);
-
-    if (intentos === total) {
-      alert('No se pudo cambiar a ninguna otra cámara.');
-    }
+  window.addEventListener('load', () => {
+    const preferred = getPreferredCamera();
+    startCamera(preferred);
   });
 
-  init();
+  switchBtn.addEventListener('click', () => {
+    const current = getPreferredCamera();
+    const next = current === 'user' ? 'environment' : 'user';
+    setPreferredCamera(next);
+    // Recarga la página para pedir permiso y activar la cámara nueva
+    location.reload();
+  });
 </script>
 
 </body>
