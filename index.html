@@ -1,28 +1,130 @@
-let streams = {};
-let currentDeviceId = null;
-
-async function getDevices() {
-  const devices = await navigator.mediaDevices.enumerateDevices();
-  return devices.filter(device => device.kind === 'videoinput');
-}
-
-async function startStreams() {
-  const videoDevices = await getDevices();
-  for (const device of videoDevices) {
-    streams[device.deviceId] = await navigator.mediaDevices.getUserMedia({
-      video: { deviceId: device.deviceId },
-      audio: true
-    });
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Cámara con cambio rápido sin pedir permiso</title>
+<style>
+  body, html {
+    margin: 0; padding: 0; height: 100%; background: black;
+    display: flex; justify-content: center; align-items: center;
+    overflow: hidden;
   }
-  // Empezar con el primer stream
-  currentDeviceId = videoDevices[0].deviceId;
-  video.srcObject = streams[currentDeviceId];
-}
+  video {
+    width: 100vw; height: 100vh; object-fit: cover;
+    transition: opacity 0.3s ease;
+  }
+  #controls {
+    position: fixed;
+    top: 10px; left: 10px;
+    display: flex; gap: 10px;
+    z-index: 1000;
+  }
+  button {
+    background: rgba(0,0,0,0.5);
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  button:active {
+    background: rgba(255,255,255,0.3);
+  }
+</style>
+</head>
+<body>
 
-function switchCamera() {
-  const keys = Object.keys(streams);
-  const currentIndex = keys.indexOf(currentDeviceId);
-  const nextIndex = (currentIndex + 1) % keys.length;
-  currentDeviceId = keys[nextIndex];
-  video.srcObject = streams[currentDeviceId];
-}
+<video id="video" autoplay playsinline muted></video>
+
+<div id="controls">
+  <button id="switchCameraBtn" title="Cambiar cámara">📷</button>
+  <button id="muteBtn" title="Silenciar / activar micrófono">🎤</button>
+</div>
+
+<script>
+  const video = document.getElementById('video');
+  const switchCameraBtn = document.getElementById('switchCameraBtn');
+  const muteBtn = document.getElementById('muteBtn');
+
+  let streams = {};
+  let currentDeviceId = null;
+  let isMuted = false;
+  let audioTrack = null;
+
+  async function getVideoDevices() {
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    return devices.filter(d => d.kind === 'videoinput');
+  }
+
+  async function startAllStreams() {
+    const videoDevices = await getVideoDevices();
+
+    if(videoDevices.length === 0) {
+      alert("No se detectaron cámaras.");
+      return;
+    }
+
+    for (const device of videoDevices) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { deviceId: device.deviceId },
+          audio: true
+        });
+        streams[device.deviceId] = stream;
+      } catch(e) {
+        console.warn("No se pudo acceder a la cámara: ", device.label, e);
+      }
+    }
+
+    // Iniciar con la primera cámara disponible
+    currentDeviceId = Object.keys(streams)[0];
+    setStream(currentDeviceId);
+  }
+
+  function setStream(deviceId) {
+    if (!streams[deviceId]) {
+      alert("Stream no disponible para ese dispositivo");
+      return;
+    }
+
+    // Cambio suave
+    video.style.opacity = 0;
+
+    setTimeout(() => {
+      video.srcObject = streams[deviceId];
+      audioTrack = streams[deviceId].getAudioTracks()[0];
+      if(audioTrack) audioTrack.enabled = !isMuted;
+      video.play();
+      video.style.opacity = 1;
+    }, 300);
+
+    currentDeviceId = deviceId;
+  }
+
+  switchCameraBtn.addEventListener('click', () => {
+    const keys = Object.keys(streams);
+    if(keys.length < 2) {
+      alert("No hay otra cámara para cambiar.");
+      return;
+    }
+    let currentIndex = keys.indexOf(currentDeviceId);
+    let nextIndex = (currentIndex + 1) % keys.length;
+    setStream(keys[nextIndex]);
+  });
+
+  muteBtn.addEventListener('click', () => {
+    if(!audioTrack) return;
+    isMuted = !isMuted;
+    audioTrack.enabled = !isMuted;
+    muteBtn.textContent = isMuted ? '🔇' : '🎤';
+  });
+
+  // Arrancar todo
+  startAllStreams();
+
+</script>
+
+</body>
+</html>
