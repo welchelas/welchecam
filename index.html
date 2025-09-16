@@ -25,34 +25,38 @@
 
     #menu {
       position: absolute;
-      bottom: 20px;
-      right: 20px;
+      top: 20px;
+      left: 20px;
       z-index: 1000;
       display: flex;
-      flex-direction: column;
+      flex-direction: row;
       gap: 12px;
     }
 
     button {
-      padding: 12px 18px;
-      font-size: 15px;
+      padding: 12px 16px;
+      font-size: 20px;
       font-weight: bold;
       border: none;
-      border-radius: 10px;
-      background-color: rgba(255,255,255,0.9);
+      border-radius: 8px;
+      background-color: rgba(255, 255, 255, 0.9);
       color: black;
       cursor: pointer;
-      box-shadow: 0 0 8px rgba(0,0,0,0.6);
+      box-shadow: 0 0 6px rgba(0, 0, 0, 0.4);
+    }
+
+    button:active {
+      background-color: rgba(200, 200, 200, 0.9);
     }
   </style>
 </head>
 <body>
 
-<video id="video" autoplay playsinline></video>
+<video id="video" autoplay playsinline muted></video>
 
 <div id="menu">
-  <button id="switchBtn">🔄 Cámara</button>
-  <button id="muteBtn">🔇 Silenciar</button>
+  <button id="switchBtn" title="Cambiar cámara">🔄</button>
+  <button id="muteBtn" title="Silenciar / Activar micrófono">🎤</button>
 </div>
 
 <script>
@@ -71,10 +75,17 @@
 
     try {
       stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { exact: currentFacingMode } },
+        video: { facingMode: currentFacingMode }, // 👈 YA NO USA "exact"
         audio: true
       });
+
       video.srcObject = stream;
+
+      const audioTrack = stream.getAudioTracks()[0];
+      if (audioTrack) {
+        audioTrack.enabled = !isMuted;
+      }
+
     } catch (err) {
       alert("Error accediendo a la cámara: " + err.message);
       console.error(err);
@@ -89,13 +100,14 @@
   muteBtn.addEventListener('click', () => {
     if (!stream) return;
     const audioTrack = stream.getAudioTracks()[0];
-    if (audioTrack) {
-      isMuted = !isMuted;
-      audioTrack.enabled = !isMuted;
-      muteBtn.textContent = isMuted ? '🔈 Activar' : '🔇 Silenciar';
-    }
+    if (!audioTrack) return;
+
+    isMuted = !isMuted;
+    audioTrack.enabled = !isMuted;
+    muteBtn.textContent = isMuted ? '🔇' : '🎤';
   });
 
+  // Inicia la cámara al cargar la página
   startCamera();
 </script>
 
