@@ -13,10 +13,10 @@
     }
     #menu {
       position: absolute; top: 20px; left: 20px; z-index: 1000;
-      display: flex; flex-direction: column; gap: 12px;
+      display: flex; flex-direction: row; gap: 12px;
     }
     button {
-      padding: 12px; /* más uniforme al ser solo ícono */
+      padding: 12px;
       font-size: 20px;
       border: none;
       border-radius: 10px;
@@ -27,14 +27,16 @@
 </head>
 <body>
 
-<video id="video" autoplay playsinline muted></video>
+<video id="video" autoplay playsinline></video>
 <div id="menu">
   <button id="switchBtn" title="Cambiar cámara" aria-label="Cambiar cámara">🔄</button>
+  <button id="muteBtn" title="Silenciar micrófono" aria-label="Silenciar micrófono">🎤</button>
 </div>
 
 <script>
   const video = document.getElementById('video');
   const switchBtn = document.getElementById('switchBtn');
+  const muteBtn = document.getElementById('muteBtn');
 
   // Lee la cámara preferida o usa 'user' (frontal) por defecto
   function getPreferredCamera() {
@@ -46,18 +48,36 @@
     localStorage.setItem('preferredCamera', facingMode);
   }
 
+  let currentStream = null;
+  let audioEnabled = true;
+
   async function startCamera(facingMode) {
     try {
+      if (currentStream) {
+        currentStream.getTracks().forEach(track => track.stop());
+      }
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: facingMode },
         audio: true
       });
+      currentStream = stream;
       video.srcObject = stream;
+      setAudioEnabled(audioEnabled);
       console.log(`Cámara iniciada con facingMode: ${facingMode}`);
     } catch (err) {
       alert('No se pudo iniciar la cámara: ' + err.message);
       console.error(err);
     }
+  }
+
+  function setAudioEnabled(enabled) {
+    if (!currentStream) return;
+    currentStream.getAudioTracks().forEach(track => {
+      track.enabled = enabled;
+    });
+    audioEnabled = enabled;
+    muteBtn.textContent = enabled ? '🎤' : '🔇';
+    muteBtn.title = enabled ? 'Silenciar micrófono' : 'Activar micrófono';
   }
 
   window.addEventListener('load', () => {
@@ -69,8 +89,11 @@
     const current = getPreferredCamera();
     const next = current === 'user' ? 'environment' : 'user';
     setPreferredCamera(next);
-    // Recarga la página para pedir permiso y activar la cámara nueva
     location.reload();
+  });
+
+  muteBtn.addEventListener('click', () => {
+    setAudioEnabled(!audioEnabled);
   });
 </script>
 
