@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Cámara múltiple (facingMode)</title>
+  <title>Cámara múltiple (facingMode mejorado)</title>
   <style>
     html, body {
       margin: 0;
@@ -67,16 +67,29 @@
     }
 
     try {
+      // Intentar con exact
       stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: { exact: facingMode } },
         audio: false
       });
       video.srcObject = stream;
       currentFacingMode = facingMode;
-      console.log(`Cámara iniciada: ${facingMode}`);
+      console.log(`Cámara iniciada con exact: ${facingMode}`);
     } catch (err) {
-      console.error('No se pudo iniciar la cámara:', err);
-      alert('No se pudo iniciar la cámara: ' + err.message);
+      console.warn(`No se pudo iniciar la cámara con exact (${facingMode}):`, err.message);
+      try {
+        // Intentar sin exact
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: facingMode },
+          audio: false
+        });
+        video.srcObject = stream;
+        currentFacingMode = facingMode;
+        console.log(`Cámara iniciada sin exact: ${facingMode}`);
+      } catch (err2) {
+        console.error('No se pudo iniciar la cámara:', err2);
+        alert('No se pudo iniciar la cámara: ' + err2.message);
+      }
     }
   }
 
