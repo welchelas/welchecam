@@ -1,49 +1,60 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8" />
-<title>Cámara con Audio y Botón Visible</title>
-<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
-<style>
-  html, body {
-    margin: 0; padding: 0; height: 100%; background: black; overflow: hidden;
-    display: flex; justify-content: center; align-items: center;
-    -webkit-user-select: none;
-    user-select: none;
-    touch-action: manipulation;
-  }
-  video {
-    width: 100vw;
-    height: 100vh;
-    /* object-fit: cover; */
-    background: black;
-  }
-  #switchBtn {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    z-index: 9999;
-    padding: 20px 40px;
-    font-size: 24px;
-    font-weight: bold;
-    border: none;
-    border-radius: 12px;
-    background: rgba(255, 255, 0, 0.95);
-    color: #000;
-    cursor: pointer;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-    user-select: none;
-    -webkit-user-select: none;
-    transition: background 0.3s ease;
-  }
-  #switchBtn:hover {
-    background: rgba(255, 255, 0, 1);
-  }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Test botón visible</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+      background-color: black;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    #container {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      background: black;
+    }
+    video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      background: black;
+    }
+    #switchBtn {
+      position: absolute;
+      bottom: 30px;
+      right: 30px;
+      z-index: 10000;
+      padding: 25px 45px;
+      font-size: 28px;
+      font-weight: 900;
+      background-color: #ff0000;
+      color: white;
+      border: 3px solid yellow;
+      border-radius: 15px;
+      cursor: pointer;
+      user-select: none;
+      -webkit-user-select: none;
+      box-shadow: 0 0 20px yellow;
+      transition: background-color 0.3s ease;
+    }
+    #switchBtn:hover {
+      background-color: #ff5555;
+    }
+  </style>
 </head>
 <body>
-  <video id="video" autoplay playsinline muted></video>
-  <button id="switchBtn" aria-label="Cambiar cámara">CAMBIAR CÁMARA</button>
+  <div id="container">
+    <video id="video" autoplay playsinline muted></video>
+    <button id="switchBtn" aria-label="Cambiar cámara">CAMBIAR CÁMARA</button>
+  </div>
 
   <script>
     const video = document.getElementById('video');
