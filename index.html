@@ -3,57 +3,116 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Cámara múltiple (recarga para cambiar cámara)</title>
+  <title>Cámara múltiple con audio y overlay</title>
   <style>
     html, body {
       margin: 0; padding: 0; height: 100%; overflow: hidden; background: black;
+      font-family: Arial, sans-serif;
     }
     video {
       position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; object-fit: cover; z-index: 0;
     }
     #menu {
-      position: absolute; bottom: 20px; right: 20px; z-index: 1000;
-      display: flex; flex-direction: column; gap: 12px;
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      z-index: 10000;
+      display: flex;
+      gap: 12px;
     }
     button {
-      padding: 12px 18px; font-size: 15px; font-weight: bold;
-      border: none; border-radius: 10px;
-      background-color: rgba(255,255,255,0.9); color: black;
-      cursor: pointer; box-shadow: 0 0 8px rgba(0,0,0,0.6);
+      width: 44px;
+      height: 44px;
+      font-size: 24px;
+      font-weight: bold;
+      border: none;
+      border-radius: 50%;
+      background-color: rgba(255,255,255,0.9);
+      color: black;
+      cursor: pointer;
+      box-shadow: 0 0 8px rgba(0,0,0,0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      user-select: none;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: rgba(255,255,255,1);
+    }
+    /* Overlay para el chat */
+    #chatOverlay {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 140px; /* ajusta tamaño según prefieras */
+      height: auto;
+      z-index: 10000;
+      cursor: pointer;
+      opacity: 0.9;
+      transition: opacity 0.3s;
+      border-radius: 8px;
+      box-shadow: 0 0 12px rgba(0,0,0,0.5);
+    }
+    #chatOverlay:hover {
+      opacity: 1;
     }
   </style>
 </head>
 <body>
 
 <video id="video" autoplay playsinline muted></video>
+
 <div id="menu">
-  <button id="switchBtn">🔄 Cambiar cámara</button>
+  <button id="switchBtn" title="Cambiar cámara" aria-label="Cambiar cámara">🔄</button>
+  <button id="muteBtn" title="Silenciar micrófono" aria-label="Silenciar micrófono">🎤</button>
 </div>
+
+<!-- Overlay con imagen (link de chat) abajo derecha -->
+<a href="https://kicktools.app/fusion_chat/fusion-chat.html?kick=&twitch=welchelas&font=Inter&fontSize=xx-large&fontShadow=shadow-na&fontColor=%23ffffff&theme=custom&fontCase=none&timestamp=on&platformBadges=on&userBadges=on&bots=on&highlight=on&fade=on&fadeTime=40" target="_blank" rel="noopener noreferrer" aria-label="Chat overlay">
+  <img id="chatOverlay" src="https://kicktools.app/fusion_chat/fusion-chat.html?kick=&twitch=welchelas&font=Inter&fontSize=xx-large&fontShadow=shadow-na&fontColor=%23ffffff&theme=custom&fontCase=none&timestamp=on&platformBadges=on&userBadges=on&bots=on&highlight=on&fade=on&fadeTime=40" alt="Chat overlay" />
+</a>
 
 <script>
   const video = document.getElementById('video');
   const switchBtn = document.getElementById('switchBtn');
+  const muteBtn = document.getElementById('muteBtn');
 
-  // Lee la cámara preferida o usa 'user' (frontal) por defecto
+  let stream = null;
+  let audioTrack = null;
+
   function getPreferredCamera() {
     return localStorage.getItem('preferredCamera') || 'user';
   }
 
-  // Guarda la cámara preferida
   function setPreferredCamera(facingMode) {
     localStorage.setItem('preferredCamera', facingMode);
   }
 
   async function startCamera(facingMode) {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
+      if (stream) {
+        // Detener tracks anteriores
+        stream.getTracks().forEach(track => track.stop());
+      }
+
+      stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: facingMode },
-        audio: false
+        audio: true
       });
+
       video.srcObject = stream;
+
+      // Obtener la pista de audio para controlar mute/unmute
+      audioTrack = stream.getAudioTracks()[0];
+
+      // Inicialmente el micrófono está activo, botón muestra "Silenciar"
+      muteBtn.textContent = '🎤';
+
       console.log(`Cámara iniciada con facingMode: ${facingMode}`);
     } catch (err) {
-      alert('No se pudo iniciar la cámara: ' + err.message);
+      alert('No se pudo iniciar la cámara y audio: ' + err.message);
       console.error(err);
     }
   }
@@ -67,8 +126,17 @@
     const current = getPreferredCamera();
     const next = current === 'user' ? 'environment' : 'user';
     setPreferredCamera(next);
-    // Recarga la página para pedir permiso y activar la cámara nueva
     location.reload();
+  });
+
+  muteBtn.addEventListener('click', () => {
+    if (!audioTrack) return;
+    audioTrack.enabled = !audioTrack.enabled;
+
+    // Cambiar icono según estado
+    muteBtn.textContent = audioTrack.enabled ? '🎤' : '🔇';
+    muteBtn.title = audioTrack.enabled ? 'Silenciar micrófono' : 'Micrófono silenciado';
+    muteBtn.setAttribute('aria-label', audioTrack.enabled ? 'Silenciar micrófono' : 'Micrófono silenciado');
   });
 </script>
 
