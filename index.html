@@ -1,381 +1,95 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cámara Funcional</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
-            color: white;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            overflow-x: hidden;
-        }
-        
-        .container {
-            width: 100%;
-            max-width: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            position: relative;
-        }
-        
-        .header {
-            background: rgba(0, 0, 0, 0.8);
-            padding: 20px;
-            text-align: center;
-            border-bottom: 2px solid #ff9900;
-        }
-        
-        h1 {
-            font-size: 24px;
-            margin-bottom: 10px;
-            color: #ff9900;
-        }
-        
-        .instructions {
-            font-size: 14px;
-            opacity: 0.9;
-            margin-bottom: 10px;
-            line-height: 1.4;
-        }
-        
-        .camera-container {
-            position: relative;
-            width: 100%;
-            padding-top: 75%;
-            overflow: hidden;
-            background: #000;
-        }
-        
-        video {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            background: #000;
-        }
-        
-        .controls {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            padding: 20px;
-            background: rgba(0, 0, 0, 0.8);
-        }
-        
-        .btn {
-            background: linear-gradient(to bottom, #ff9900, #ff6600);
-            color: white;
-            border: none;
-            padding: 16px 25px;
-            border-radius: 50px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            width: 100%;
-        }
-        
-        .btn:active {
-            background: linear-gradient(to bottom, #ffbb33, #ff7733);
-            transform: translateY(2px);
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
-        }
-        
-        .btn:disabled {
-            background: #666;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-        
-        .status {
-            text-align: center;
-            padding: 15px;
-            font-size: 16px;
-            background: rgba(0, 0, 0, 0.6);
-            border-top: 1px solid #333;
-        }
-        
-        .error {
-            color: #ff6666;
-            text-align: center;
-            padding: 15px;
-            display: none;
-            background: rgba(0, 0, 0, 0.8);
-            border-radius: 10px;
-            margin: 10px;
-        }
-        
-        .camera-icon {
-            width: 24px;
-            height: 24px;
-        }
-        
-        .permission-prompt {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.9);
-            padding: 20px;
-            border-radius: 15px;
-            text-align: center;
-            width: 90%;
-            max-width: 350px;
-            z-index: 100;
-        }
-        
-        .permission-prompt p {
-            margin-bottom: 15px;
-            line-height: 1.5;
-        }
-        
-        .browser-support {
-            margin-top: 20px;
-            text-align: center;
-            font-size: 12px;
-            opacity: 0.8;
-            padding: 10px;
-        }
-        
-        /* Estilos específicos para móviles */
-        @media (max-width: 768px) {
-            body {
-                padding: 10px;
-                justify-content: flex-start;
-            }
-            
-            .container {
-                border-radius: 15px;
-                width: 100%;
-            }
-            
-            h1 {
-                font-size: 20px;
-            }
-            
-            .instructions {
-                font-size: 13px;
-            }
-            
-            .btn {
-                padding: 18px 25px;
-                font-size: 17px;
-            }
-            
-            .camera-container {
-                padding-top: 100%;
-            }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cam App</title>
+  <style>
+    html, body {
+      margin: 0; padding: 0;
+      width: 100vw; height: 100vh;
+      overflow: hidden;
+      background-color: black;
+    }
+    video {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
+      z-index: 0;
+    }
+    #menu {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    button {
+      padding: 10px 15px;
+      font-size: 14px;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      background-color: rgba(255,255,255,0.8);
+      color: black;
+      cursor: pointer;
+      box-shadow: 0 0 5px rgba(0,0,0,0.5);
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>📷 Cámara Móvil</h1>
-            <p class="instructions">Haz clic en "Cambiar Cámara" para alternar entre la cámara frontal y trasera</p>
-        </div>
-        
-        <div class="camera-container">
-            <video id="video" autoplay playsinline></video>
-            <div class="permission-prompt" id="permissionPrompt">
-                <p>Por favor, permite el acceso a la cámara para usar esta aplicación.</p>
-            </div>
-        </div>
-        
-        <div class="error" id="errorMsg"></div>
-        
-        <div class="status" id="status">Iniciando cámara...</div>
-        
-        <div class="controls">
-            <button id="switchBtn" class="btn" disabled>
-                <svg class="camera-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M4 4L7 7M7 7L4 10M7 7H20C20.5523 7 21 6.55228 21 6V4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                    <path d="M20 20L17 17M17 17L20 14M17 17H4C3.44772 17 3 17.4477 3 18V20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-                CAMBIAR CÁMARA
-            </button>
-            <button id="captureBtn" class="btn">
-                <svg class="camera-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 15.5C13.933 15.5 15.5 13.933 15.5 12C15.5 10.067 13.933 8.5 12 8.5C10.067 8.5 8.5 10.067 8.5 12C8.5 13.933 10.067 15.5 12 15.5Z" stroke="currentColor" stroke-width="2"/>
-                    <path d="M2 12C2 12 5.5 7 12 7C18.5 7 22 12 22 12C22 12 18.5 17 12 17C5.5 17 2 12 2 12Z" stroke="currentColor" stroke-width="2"/>
-                </svg>
-                CAPTURAR FOTO
-            </button>
-        </div>
-    </div>
-    
-    <div class="browser-support">
-        <p>Funciona en Chrome, Firefox, Safari y navegadores móviles modernos</p>
-    </div>
 
-    <script>
-        const video = document.getElementById('video');
-        const switchBtn = document.getElementById('switchBtn');
-        const captureBtn = document.getElementById('captureBtn');
-        const statusDisplay = document.getElementById('status');
-        const errorMsg = document.getElementById('errorMsg');
-        const permissionPrompt = document.getElementById('permissionPrompt');
-        
-        let stream = null;
-        let currentFacingMode = 'environment';
-        let hasFrontCamera = false;
-        let hasBackCamera = false;
-        
-        // Verificar si es un dispositivo móvil
-        function isMobile() {
-            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        }
-        
-        // Mostrar u ocultar el prompt de permisos
-        function showPermissionPrompt(show) {
-            permissionPrompt.style.display = show ? 'block' : 'none';
-        }
-        
-        // Mostrar error
-        function showError(message) {
-            errorMsg.textContent = message;
-            errorMsg.style.display = 'block';
-            statusDisplay.textContent = 'Error';
-            switchBtn.disabled = true;
-        }
-        
-        // Iniciar la cámara
-        async function startCamera(facingMode = 'environment') {
-            showPermissionPrompt(true);
-            
-            // Detener stream actual si existe
-            if (stream) {
-                stream.getTracks().forEach(track => track.stop());
-            }
-            
-            try {
-                const constraints = {
-                    video: { 
-                        facingMode: { ideal: facingMode }
-                    },
-                    audio: false
-                };
-                
-                stream = await navigator.mediaDevices.getUserMedia(constraints);
-                video.srcObject = stream;
-                
-                // Ajustar efecto espejo para selfie
-                if (facingMode === 'user') {
-                    video.style.transform = 'scaleX(-1)';
-                    statusDisplay.textContent = 'Cámara frontal activada';
-                } else {
-                    video.style.transform = 'scaleX(1)';
-                    statusDisplay.textContent = 'Cámara trasera activada';
-                }
-                
-                currentFacingMode = facingMode;
-                switchBtn.disabled = false;
-                showPermissionPrompt(false);
-                errorMsg.style.display = 'none';
-                
-            } catch (error) {
-                console.error("Error al iniciar cámara:", error);
-                showPermissionPrompt(false);
-                
-                // Intentar con el modo alternativo
-                const alternateMode = facingMode === 'user' ? 'environment' : 'user';
-                
-                if (error.name === 'NotAllowedError') {
-                    showError('Permiso de cámara denegado. Por favor, permite el acceso a la cámara.');
-                } else if (error.name === 'NotFoundError' || error.name === 'OverconstrainedError') {
-                    // Intentar con la cámara alternativa
-                    try {
-                        await startCamera(alternateMode);
-                    } catch (secondError) {
-                        showError('No se pudo acceder a ninguna cámara.');
-                    }
-                } else {
-                    showError('Error al acceder a la cámara: ' + error.message);
-                }
-            }
-        }
-        
-        // Cambiar entre cámaras
-        async function switchCamera() {
-            const newFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
-            await startCamera(newFacingMode);
-        }
-        
-        // Capturar foto
-        function capturePhoto() {
-            try {
-                const canvas = document.createElement('canvas');
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
-                const ctx = canvas.getContext('2d');
-                
-                // Ajustar el dibujo según la cámara activa
-                if (currentFacingMode === 'user') {
-                    ctx.translate(canvas.width, 0);
-                    ctx.scale(-1, 1);
-                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                } else {
-                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                }
-                
-                // Crear un enlace para descargar la imagen
-                const link = document.createElement('a');
-                link.download = 'foto.png';
-                link.href = canvas.toDataURL('image/png');
-                link.click();
-                
-                // Efecto visual de captura
-                video.style.opacity = '0.5';
-                setTimeout(() => {
-                    video.style.opacity = '1';
-                }, 200);
-                
-            } catch (error) {
-                console.error("Error al capturar foto:", error);
-                showError("Error al capturar la foto");
-            }
-        }
-        
-        // Event listeners
-        switchBtn.addEventListener('click', switchCamera);
-        captureBtn.addEventListener('click', capturePhoto);
-        
-        // Inicializar cámara cuando se carga la página
-        window.addEventListener('load', async () => {
-            // Verificar si el navegador soporta la API de mediaDevices
-            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                showError('Tu navegador no soporta el acceso a la cámara.');
-                return;
-            }
-            
-            // Iniciar con la cámara trasera por defecto
-            await startCamera('environment');
-        });
-    </script>
+<video id="video" autoplay playsinline muted></video>
+
+<div id="menu">
+  <button id="switchBtn">🔄 Cámara</button>
+  <button id="muteBtn">🔇 Silenciar</button>
+</div>
+
+<script>
+  const video = document.getElementById('video');
+  const switchBtn = document.getElementById('switchBtn');
+  const muteBtn = document.getElementById('muteBtn');
+  let stream = null;
+  let currentFacingMode = 'environment';
+  let isMuted = false;
+
+  async function startCamera() {
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+    }
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { exact: currentFacingMode } },
+        audio: true
+      });
+      video.srcObject = stream;
+    } catch (err) {
+      alert("Error accediendo a la cámara: " + err.message);
+      console.error(err);
+    }
+  }
+
+  switchBtn.onclick = () => {
+    currentFacingMode = (currentFacingMode === 'user') ? 'environment' : 'user';
+    startCamera();
+  };
+
+  muteBtn.onclick = () => {
+    if (!stream) return;
+    const audioTrack = stream.getAudioTracks()[0];
+    if (audioTrack) {
+      isMuted = !isMuted;
+      audioTrack.enabled = !isMuted;
+      muteBtn.textContent = isMuted ? '🔈 Activar' : '🔇 Silenciar';
+    }
+  };
+
+  startCamera();
+</script>
+
 </body>
 </html>
