@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Cámara + Chat Overlay</title>
+  <title>Cámara Trasera + Chat Overlay</title>
   <style>
     html, body {
       margin: 0;
@@ -18,6 +18,7 @@
       height: 100vh;
       object-fit: cover;
       z-index: 1;
+      transform: scaleX(-1); /* espejo opcional, puedes quitarlo */
     }
     #overlay {
       position: absolute;
@@ -41,20 +42,26 @@
   <div id="overlay">
     <iframe 
       src="https://kicktools.app/fusion_chat/fusion-chat.html?kick=&twitch=welchelas&font=Inter&fontSize=x-large&fontShadow=shadow-na&fontColor=%23ffffff&theme=custom&fontCase=none&timestamp=on&platformBadges=on&userBadges=on&bots=on&highlight=on&fade=on&fadeTime=40" 
-      allowtransparency="true" 
+      allowtransparency="true"
       frameborder="0">
     </iframe>
   </div>
 
   <script>
     const video = document.getElementById('video');
-    navigator.mediaDevices.getUserMedia({ video: true, audio: false })
-      .then((stream) => {
-        video.srcObject = stream;
-      })
-      .catch((err) => {
-        alert("No se pudo acceder a la cámara: " + err);
-      });
+
+    navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { exact: "environment" } },
+      audio: false
+    })
+    .then((stream) => {
+      video.srcObject = stream;
+    })
+    .catch((err) => {
+      alert("No se pudo acceder a la cámara trasera: " + err);
+    });
   </script>
 </body>
 </html>
+
+
