@@ -1,39 +1,44 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Cámara con botón visible encima</title>
-<style>
-  html, body {
-    margin: 0; padding: 0; height: 100%; overflow: hidden; background: black;
-  }
-  video {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100vw;
-    height: 100vh;
-    object-fit: cover;
-    z-index: 0;
-  }
-  #switchBtn {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    z-index: 1000;
-    padding: 15px 30px;
-    background: rgba(255, 255, 0, 0.8);
-    color: black;
-    font-weight: bold;
-    font-size: 20px;
-    border: 2px solid black;
-    border-radius: 10px;
-    cursor: pointer;
-    user-select: none;
-    -webkit-user-select: none;
-    box-shadow: 0 0 10px black;
-  }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cámara con botón visible encima</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+      background: black;
+    }
+    video {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
+      z-index: 0;
+    }
+    #switchBtn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 1000;
+      padding: 15px 30px;
+      background: rgba(255, 255, 0, 0.8);
+      color: black;
+      font-weight: bold;
+      font-size: 20px;
+      border: 2px solid black;
+      border-radius: 10px;
+      cursor: pointer;
+      user-select: none;
+      -webkit-user-select: none;
+      box-shadow: 0 0 10px black;
+    }
+  </style>
 </head>
 <body>
 
