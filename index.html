@@ -1,60 +1,54 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Cam App</title>
-  <style>
-    html, body {
-      margin: 0; padding: 0;
-      width: 100vw; height: 100vh;
-      overflow: hidden;
-      background-color: black;
-    }
-    video {
-      position: absolute;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      object-fit: cover;
-      z-index: 0;
-    }
-    #menu {
-      position: absolute;
-      bottom: 20px;
-      right: 20px;
-      z-index: 1000;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    button {
-      padding: 12px 18px;
-      font-size: 15px;
-      font-weight: bold;
-      border: none;
-      border-radius: 10px;
-      background-color: rgba(255,255,255,0.9);
-      color: black;
-      cursor: pointer;
-      box-shadow: 0 0 8px rgba(0,0,0,0.6);
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Cámara rápida y suave</title>
+<style>
+  html, body {
+    margin: 0; padding: 0; height: 100%; background: black; overflow: hidden;
+  }
+  video {
+    position: absolute; top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    object-fit: cover;
+    transition: opacity 0.3s ease;
+  }
+  #menu {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    display: flex;
+    gap: 12px;
+    z-index: 1000;
+  }
+  button {
+    background: rgba(255,255,255,0.9);
+    border: none;
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 20px;
+    cursor: pointer;
+    box-shadow: 0 0 8px rgba(0,0,0,0.6);
+  }
+</style>
 </head>
 <body>
 
 <video id="video" autoplay playsinline muted></video>
 
 <div id="menu">
-  <button id="switchBtn">🔄 Cámara</button>
-  <button id="muteBtn">🔇 Silenciar</button>
+  <button id="switchBtn" title="Cambiar cámara">📷</button>
+  <button id="muteBtn" title="Silenciar/Activar micrófono">🔈</button>
 </div>
 
 <script>
   const video = document.getElementById('video');
   const switchBtn = document.getElementById('switchBtn');
   const muteBtn = document.getElementById('muteBtn');
+
   let stream = null;
-  let currentFacingMode = 'environment';
+  let currentFacingMode = 'environment'; // Empezar con trasera
   let isMuted = false;
 
   async function startCamera() {
@@ -62,32 +56,50 @@
       stream.getTracks().forEach(track => track.stop());
     }
     try {
-      stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { exact: currentFacingMode } },
+      const newStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: currentFacingMode },
         audio: true
       });
-      video.srcObject = stream;
+
+      // Efecto de transición suave
+      video.style.opacity = 0;
+
+      setTimeout(() => {
+        video.srcObject = newStream;
+        video.play();
+        video.style.opacity = 1;
+      }, 300);
+
+      stream = newStream;
+
+      // Configurar estado del micrófono
+      const audioTrack = stream.getAudioTracks()[0];
+      if (audioTrack) audioTrack.enabled = !isMuted;
+
+      muteBtn.textContent = isMuted ? '🔇' : '🔈';
+
     } catch (err) {
-      alert("Error accediendo a la cámara: " + err.message);
+      alert("Error al acceder a la cámara: " + err.message);
       console.error(err);
     }
   }
 
-  switchBtn.onclick = () => {
-    currentFacingMode = (currentFacingMode === 'user') ? 'environment' : 'user';
-    startCamera();
-  };
+  switchBtn.addEventListener('click', async () => {
+    currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
+    await startCamera();
+  });
 
-  muteBtn.onclick = () => {
+  muteBtn.addEventListener('click', () => {
     if (!stream) return;
     const audioTrack = stream.getAudioTracks()[0];
-    if (audioTrack) {
-      isMuted = !isMuted;
-      audioTrack.enabled = !isMuted;
-      muteBtn.textContent = isMuted ? '🔈 Activar' : '🔇 Silenciar';
-    }
-  };
+    if (!audioTrack) return;
 
+    isMuted = !isMuted;
+    audioTrack.enabled = !isMuted;
+    muteBtn.textContent = isMuted ? '🔇' : '🔈';
+  });
+
+  // Iniciar cámara al cargar la página
   startCamera();
 </script>
 
