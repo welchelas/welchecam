@@ -3,53 +3,29 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Cámara múltiple (facingMode mejorado)</title>
+  <title>Cámara múltiple (deviceId + facingMode)</title>
   <style>
     html, body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      overflow: hidden;
-      background: black;
+      margin: 0; padding: 0; height: 100%; overflow: hidden; background: black;
     }
-
     video {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      object-fit: cover;
-      z-index: 0;
+      position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; object-fit: cover; z-index: 0;
     }
-
     #menu {
-      position: absolute;
-      bottom: 20px;
-      right: 20px;
-      z-index: 1000;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
+      position: absolute; bottom: 20px; right: 20px; z-index: 1000;
+      display: flex; flex-direction: column; gap: 12px;
     }
-
     button {
-      padding: 12px 18px;
-      font-size: 15px;
-      font-weight: bold;
-      border: none;
-      border-radius: 10px;
-      background-color: rgba(255,255,255,0.9);
-      color: black;
-      cursor: pointer;
-      box-shadow: 0 0 8px rgba(0,0,0,0.6);
+      padding: 12px 18px; font-size: 15px; font-weight: bold;
+      border: none; border-radius: 10px;
+      background-color: rgba(255,255,255,0.9); color: black;
+      cursor: pointer; box-shadow: 0 0 8px rgba(0,0,0,0.6);
     }
   </style>
 </head>
 <body>
 
 <video id="video" autoplay playsinline muted></video>
-
 <div id="menu">
   <button id="switchBtn">🔄 Cambiar cámara</button>
 </div>
@@ -59,47 +35,66 @@
   const switchBtn = document.getElementById('switchBtn');
 
   let stream = null;
-  let currentFacingMode = "user"; // user = frontal, environment = trasera
+  let videoDevices = [];
+  let currentDeviceIndex = 0;
 
-  async function startCameraByFacingMode(facingMode) {
+  async function init() {
+    try {
+      // Paso 1: Pide permiso mínimo para desbloquear labels de dispositivos
+      await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+
+      // Paso 2: Obtiene la lista de cámaras
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      videoDevices = devices.filter(device => device.kind === 'videoinput');
+
+      if (videoDevices.length === 0) {
+        alert('No se detectaron cámaras.');
+        return;
+      }
+
+      console.log('Cámaras detectadas:');
+      videoDevices.forEach((d,i) => {
+        console.log(`[${i}] label: ${d.label}, deviceId: ${d.deviceId}`);
+      });
+
+      // Elige la cámara frontal como inicial (por defecto la primera)
+      currentDeviceIndex = videoDevices.findIndex(d => d.label.toLowerCase().includes('front')) ;
+      if(currentDeviceIndex < 0) currentDeviceIndex = 0;
+
+      await startCamera(videoDevices[currentDeviceIndex].deviceId);
+    } catch (err) {
+      alert('Error accediendo a la cámara: ' + err.message);
+      console.error(err);
+    }
+  }
+
+  async function startCamera(deviceId) {
     if (stream) {
       stream.getTracks().forEach(track => track.stop());
     }
-
     try {
-      // Intentar con exact
       stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { exact: facingMode } },
+        video: { deviceId: { exact: deviceId } },
         audio: false
       });
       video.srcObject = stream;
-      currentFacingMode = facingMode;
-      console.log(`Cámara iniciada con exact: ${facingMode}`);
     } catch (err) {
-      console.warn(`No se pudo iniciar la cámara con exact (${facingMode}):`, err.message);
-      try {
-        // Intentar sin exact
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: facingMode },
-          audio: false
-        });
-        video.srcObject = stream;
-        currentFacingMode = facingMode;
-        console.log(`Cámara iniciada sin exact: ${facingMode}`);
-      } catch (err2) {
-        console.error('No se pudo iniciar la cámara:', err2);
-        alert('No se pudo iniciar la cámara: ' + err2.message);
-      }
+      console.error('No se pudo iniciar la cámara:', err);
+      alert('No se pudo iniciar la cámara: ' + err.message);
     }
   }
 
   switchBtn.addEventListener('click', async () => {
-    const newFacingMode = currentFacingMode === "user" ? "environment" : "user";
-    await startCameraByFacingMode(newFacingMode);
+    if(videoDevices.length <= 1) {
+      alert('No hay más cámaras para cambiar.');
+      return;
+    }
+    // Alternar cámara
+    currentDeviceIndex = (currentDeviceIndex + 1) % videoDevices.length;
+    await startCamera(videoDevices[currentDeviceIndex].deviceId);
   });
 
-  // Iniciar la cámara frontal al cargar la página
-  startCameraByFacingMode(currentFacingMode);
+  init();
 </script>
 
 </body>
