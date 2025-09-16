@@ -10,6 +10,10 @@
     }
     video {
       position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; object-fit: cover; z-index: 0;
+      transition: filter 0.3s ease;
+    }
+    video.blur {
+      filter: blur(8px);
     }
     #menu {
       position: absolute; top: 20px; left: 20px; z-index: 1000;
@@ -22,6 +26,7 @@
       border-radius: 10px;
       background-color: rgba(255,255,255,0.9); color: black;
       cursor: pointer; box-shadow: 0 0 8px rgba(0,0,0,0.6);
+      user-select: none;
     }
   </style>
 </head>
@@ -31,25 +36,26 @@
 <div id="menu">
   <button id="switchBtn" title="Cambiar cámara" aria-label="Cambiar cámara">🔄</button>
   <button id="muteBtn" title="Silenciar micrófono" aria-label="Silenciar micrófono">🎤</button>
+  <button id="blurBtn" title="Activar/desactivar desenfoque" aria-label="Activar/desactivar desenfoque">💨</button>
 </div>
 
 <script>
   const video = document.getElementById('video');
   const switchBtn = document.getElementById('switchBtn');
   const muteBtn = document.getElementById('muteBtn');
+  const blurBtn = document.getElementById('blurBtn');
 
-  // Lee la cámara preferida o usa 'user' (frontal) por defecto
   function getPreferredCamera() {
     return localStorage.getItem('preferredCamera') || 'user';
   }
 
-  // Guarda la cámara preferida
   function setPreferredCamera(facingMode) {
     localStorage.setItem('preferredCamera', facingMode);
   }
 
   let currentStream = null;
   let audioEnabled = true;
+  let blurEnabled = false;
 
   async function startCamera(facingMode) {
     try {
@@ -63,6 +69,7 @@
       currentStream = stream;
       video.srcObject = stream;
       setAudioEnabled(audioEnabled);
+      updateBlur();
       console.log(`Cámara iniciada con facingMode: ${facingMode}`);
     } catch (err) {
       alert('No se pudo iniciar la cámara: ' + err.message);
@@ -80,6 +87,18 @@
     muteBtn.title = enabled ? 'Silenciar micrófono' : 'Activar micrófono';
   }
 
+  function updateBlur() {
+    if (blurEnabled) {
+      video.classList.add('blur');
+      blurBtn.textContent = '🌫️';
+      blurBtn.title = 'Desactivar desenfoque';
+    } else {
+      video.classList.remove('blur');
+      blurBtn.textContent = '💨';
+      blurBtn.title = 'Activar desenfoque';
+    }
+  }
+
   window.addEventListener('load', () => {
     const preferred = getPreferredCamera();
     startCamera(preferred);
@@ -94,6 +113,11 @@
 
   muteBtn.addEventListener('click', () => {
     setAudioEnabled(!audioEnabled);
+  });
+
+  blurBtn.addEventListener('click', () => {
+    blurEnabled = !blurEnabled;
+    updateBlur();
   });
 </script>
 
