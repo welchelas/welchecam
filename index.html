@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Cámara con Chat + Switch</title>
+  <title>Cámara + Audio + Chat + Cambiar Cámara</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     html, body {
@@ -36,8 +36,8 @@
     }
     #toggleCamera {
       position: fixed;
-      top: 10px;
-      left: 10px;
+      bottom: 10px;
+      right: 10px;
       z-index: 9999;
       padding: 12px 16px;
       background-color: rgba(0, 0, 0, 0.7);
@@ -66,7 +66,7 @@
     const video = document.getElementById('video');
     const toggleBtn = document.getElementById('toggleCamera');
 
-    let currentFacing = "environment"; // Inicia con cámara trasera
+    let currentFacing = "environment"; // Empieza con la cámara trasera
     let stream = null;
 
     async function startCamera(facingMode) {
@@ -77,12 +77,12 @@
       try {
         stream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: { exact: facingMode } },
-          audio: false
+          audio: true // ✅ ACTIVADO el micrófono
         });
         video.srcObject = stream;
         currentFacing = facingMode;
       } catch (err) {
-        alert("No se pudo acceder a la cámara: " + err.message);
+        alert("No se pudo acceder a la cámara o micrófono: " + err.message);
       }
     }
 
@@ -91,7 +91,7 @@
       startCamera(nextFacing);
     });
 
-    // Inicia al cargar
+    // Iniciar cámara al cargar
     startCamera(currentFacing);
   </script>
 </body>
