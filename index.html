@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Cámara múltiple (deviceId + facingMode)</title>
+  <title>Cámara múltiple (mejor manejo errores)</title>
   <style>
     html, body {
       margin: 0; padding: 0; height: 100%; overflow: hidden; background: black;
@@ -40,10 +40,7 @@
 
   async function init() {
     try {
-      // Paso 1: Pide permiso mínimo para desbloquear labels de dispositivos
       await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-
-      // Paso 2: Obtiene la lista de cámaras
       const devices = await navigator.mediaDevices.enumerateDevices();
       videoDevices = devices.filter(device => device.kind === 'videoinput');
 
@@ -57,8 +54,7 @@
         console.log(`[${i}] label: ${d.label}, deviceId: ${d.deviceId}`);
       });
 
-      // Elige la cámara frontal como inicial (por defecto la primera)
-      currentDeviceIndex = videoDevices.findIndex(d => d.label.toLowerCase().includes('front')) ;
+      currentDeviceIndex = videoDevices.findIndex(d => d.label.toLowerCase().includes('front'));
       if(currentDeviceIndex < 0) currentDeviceIndex = 0;
 
       await startCamera(videoDevices[currentDeviceIndex].deviceId);
@@ -72,16 +68,11 @@
     if (stream) {
       stream.getTracks().forEach(track => track.stop());
     }
-    try {
-      stream = await navigator.mediaDevices.getUserMedia({
-        video: { deviceId: { exact: deviceId } },
-        audio: false
-      });
-      video.srcObject = stream;
-    } catch (err) {
-      console.error('No se pudo iniciar la cámara:', err);
-      alert('No se pudo iniciar la cámara: ' + err.message);
-    }
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: { deviceId: { exact: deviceId } },
+      audio: false
+    });
+    video.srcObject = stream;
   }
 
   switchBtn.addEventListener('click', async () => {
@@ -89,9 +80,25 @@
       alert('No hay más cámaras para cambiar.');
       return;
     }
-    // Alternar cámara
-    currentDeviceIndex = (currentDeviceIndex + 1) % videoDevices.length;
-    await startCamera(videoDevices[currentDeviceIndex].deviceId);
+
+    let intentos = 0;
+    const total = videoDevices.length;
+
+    do {
+      currentDeviceIndex = (currentDeviceIndex + 1) % total;
+      try {
+        await startCamera(videoDevices[currentDeviceIndex].deviceId);
+        console.log(`Cámara cambiada a índice ${currentDeviceIndex}`);
+        break;
+      } catch (err) {
+        console.warn(`No se pudo iniciar cámara en índice ${currentDeviceIndex}:`, err.message);
+        intentos++;
+      }
+    } while (intentos < total);
+
+    if (intentos === total) {
+      alert('No se pudo cambiar a ninguna otra cámara.');
+    }
   });
 
   init();
