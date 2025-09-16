@@ -12,12 +12,14 @@
       position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; object-fit: cover; z-index: 0;
     }
     #menu {
-      position: absolute; bottom: 20px; right: 20px; z-index: 1000;
+      position: absolute; top: 20px; left: 20px; z-index: 1000;
       display: flex; flex-direction: column; gap: 12px;
     }
     button {
-      padding: 12px 18px; font-size: 15px; font-weight: bold;
-      border: none; border-radius: 10px;
+      padding: 12px; /* más uniforme al ser solo ícono */
+      font-size: 20px;
+      border: none;
+      border-radius: 10px;
       background-color: rgba(255,255,255,0.9); color: black;
       cursor: pointer; box-shadow: 0 0 8px rgba(0,0,0,0.6);
     }
@@ -27,7 +29,7 @@
 
 <video id="video" autoplay playsinline muted></video>
 <div id="menu">
-  <button id="switchBtn">🔄 Cambiar cámara</button>
+  <button id="switchBtn" title="Cambiar cámara" aria-label="Cambiar cámara">🔄</button>
 </div>
 
 <script>
