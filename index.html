@@ -37,6 +37,7 @@
   <button id="switchBtn" title="Cambiar cámara" aria-label="Cambiar cámara">🔄</button>
   <button id="muteBtn" title="Silenciar micrófono" aria-label="Silenciar micrófono">🎤</button>
   <button id="blurBtn" title="Activar/desactivar desenfoque" aria-label="Activar/desactivar desenfoque">💨</button>
+  <button id="fullscreenBtn" title="Pantalla completa" aria-label="Pantalla completa">🔲</button> <!-- NUEVO BOTÓN -->
 </div>
 
 <script>
@@ -44,6 +45,7 @@
   const switchBtn = document.getElementById('switchBtn');
   const muteBtn = document.getElementById('muteBtn');
   const blurBtn = document.getElementById('blurBtn');
+  const fullscreenBtn = document.getElementById('fullscreenBtn'); // NUEVA LÍNEA
 
   function getPreferredCamera() {
     return localStorage.getItem('preferredCamera') || 'user';
@@ -150,6 +152,17 @@
   blurBtn.addEventListener('click', () => {
     blurEnabled = !blurEnabled;
     updateBlur();
+  });
+
+  // NUEVO EVENTO PARA PANTALLA COMPLETA
+  fullscreenBtn.addEventListener('click', () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(err => {
+        alert(`Error al intentar entrar en pantalla completa: ${err.message}`);
+      });
+    } else {
+      document.exitFullscreen();
+    }
   });
 </script>
 
