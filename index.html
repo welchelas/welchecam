@@ -28,16 +28,6 @@
       cursor: pointer; box-shadow: 0 0 8px rgba(0,0,0,0.6);
       user-select: none;
     }
-    /* Estilo para iframe de VDO.Ninja */
-    iframe#vdoNinjaCam {
-      position: absolute;
-      top: 0; left: 0;
-      width: 100vw;
-      height: 100vh;
-      border: none;
-      z-index: 1; /* Más arriba que el video */
-      background: black;
-    }
   </style>
 </head>
 <body>
@@ -67,17 +57,18 @@
   let audioEnabled = true;
   let blurEnabled = false;
 
+  // Función startCamera con búsqueda automática de la mejor resolución
   async function startCamera(facingMode) {
     if (currentStream) {
       currentStream.getTracks().forEach(track => track.stop());
     }
 
     const resolutions = [
-      { width: 3840, height: 2160 },
-      { width: 2560, height: 1440 },
-      { width: 1920, height: 1080 },
-      { width: 1280, height: 720 },
-      { width: 640, height: 480 }
+      { width: 3840, height: 2160 }, // 4K
+      { width: 2560, height: 1440 }, // 2K
+      { width: 1920, height: 1080 }, // Full HD
+      { width: 1280, height: 720 },  // HD
+      { width: 640, height: 480 }    // SD
     ];
 
     for (const res of resolutions) {
@@ -95,12 +86,13 @@
         setAudioEnabled(audioEnabled);
         updateBlur();
         console.log(`Cámara iniciada con resolución exacta: ${res.width}x${res.height}`);
-        return;
+        return; // Sale si tuvo éxito
       } catch (err) {
         console.warn(`Resolución ${res.width}x${res.height} no soportada, probando otra...`);
       }
     }
 
+    // Si no se pudo con resoluciones exactas, usar configuración por defecto
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: facingMode },
@@ -161,14 +153,6 @@
   });
 </script>
 
-<!-- Aquí agrego el iframe de VDO.Ninja en fullscreen -->
-<iframe
-  id="vdoNinjaCam"
-  src="https://vdo.ninja/?view=gybbVZk"  
-  allow="camera; microphone; autoplay; encrypted-media" 
-  allowfullscreen
-></iframe>
-
 <!-- Overlay chat -->
 <iframe 
   src="https://kicktools.app/fusion_chat/fusion-chat.html?kick=&twitch=welchelas&font=Inter&fontSize=xx-large&fontShadow=shadow-na&fontColor=%23ffffff&theme=custom&fontCase=none&timestamp=on&platformBadges=on&userBadges=on&bots=on&highlight=on&fade=on&fadeTime=40"
@@ -188,4 +172,3 @@
 
 </body>
 </html>
-
